@@ -1,0 +1,144 @@
+/* PublicRequestPortal.css */
+
+.portal-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.portal-card {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.portal-card h1 {
+  color: #1890ff;
+  margin-bottom: 8px;
+  font-size: 28px;
+  text-align: center;
+}
+
+.portal-card > p {
+  text-align: center;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+.portal-success-card {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.portal-next-steps {
+  background: #f0f7ff;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  text-align: left;
+}
+
+.portal-next-steps ol {
+  margin: 8px 0 0 20px;
+  padding: 0;
+}
+
+.portal-next-steps li {
+  margin: 8px 0;
+  color: #333;
+}
+
+/* Form styling */
+.ant-form-item-label > label {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  border-radius: 8px;
+}
+
+.ant-btn {
+  border-radius: 8px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.ant-btn-lg {
+  height: 48px;
+  font-size: 16px;
+}
+
+/* Steps customization */
+.ant-steps-item-title {
+  font-weight: 500;
+}
+
+.ant-steps-item-description {
+  font-size: 12px;
+}
+
+/* Checkbox group */
+.ant-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ant-checkbox-group-item {
+  margin-right: 0 !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .portal-container {
+    padding: 20px 16px;
+  }
+  
+  .portal-card {
+    border-radius: 12px;
+  }
+  
+  .portal-card h1 {
+    font-size: 24px;
+  }
+  
+  .ant-steps-item-title {
+    font-size: 12px;
+  }
+  
+  .ant-steps-item-description {
+    display: none;
+  }
+}
+
+/* Loading state */
+.ant-btn-loading {
+  cursor: not-allowed;
+}
+
+/* Success page */
+.ant-result-success .ant-result-icon > .anticon {
+  color: #52c41a;
+}
+
+/* Form validation */
+.ant-form-item-explain-error {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Card hover effect */
+.portal-card:hover {
+  transform: translateY(-2px);
+  transition: transform 0.3s ease;
+}
