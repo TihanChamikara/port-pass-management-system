@@ -48,12 +48,6 @@ npm run dev
 - Frontend default API: `http://localhost:8000/api`
 
 
-admin / Admin@123
-ops_officer / OpOfficer@123
-pass_officer / PassOfficer@123
-gate_officer / GateOfficer@123
-
-
 http://localhost:5173/visitor-request
 http://localhost:5173/operations/approvals
 http://localhost:5173/pass/generation
