@@ -1,0 +1,11 @@
+stateDiagram-v2
+    [*] --> pending_department_approval : Request Submitted
+    pending_department_approval --> pending_approval : Dept Manager Approves
+    pending_department_approval --> Rejected : Dept Manager Rejects
+    pending_approval --> approved : Ops Officer Approves
+    pending_approval --> Rejected : Ops Officer Rejects
+    approved --> issued : Pass Officer Generates QR
+    issued --> checked_in : Gate Officer Scans (Entry)
+    checked_in --> checked_out : Gate Officer Scans (Exit)
+    checked_out --> [*]
+    Rejected --> [*]

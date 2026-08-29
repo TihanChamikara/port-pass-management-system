@@ -1,0 +1,12 @@
+graph TD
+    A([START]) --> B[Operations Officer logs in]
+    B --> C[View department-approved requests]
+    C --> D[Review detailed identity profiles]
+    D --> E[Assign classifications e.g., VIP, LMV routing]
+    E --> F{Request Approved?}
+    F -- No --> G[Reject request]
+    G --> H[(Update Status: Rejected)]
+    H --> I([END])
+    F -- Yes --> J[Approve request]
+    J --> K[(Update Status: approved)]
+    K --> I

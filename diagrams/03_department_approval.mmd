@@ -1,0 +1,12 @@
+graph TD
+    A([START]) --> B[Department Manager logs in]
+    B --> C[View pending requests queue]
+    C --> D[Select request]
+    D --> E[Review business need]
+    E --> F{Approve Request?}
+    F -- No --> G[Reject request]
+    G --> H[(Update Status: Rejected)]
+    H --> I([END])
+    F -- Yes --> J[Approve request]
+    J --> K[(Update Status: pending_approval)]
+    K --> I

@@ -1,0 +1,12 @@
+graph TD
+    A([START]) --> B[Gate Officer logs in]
+    B --> C[Visitor arrives at gate]
+    C --> D[Scan visitor QR Pass]
+    D --> E[Retrieve visitor profile & status]
+    E --> F{Pass Status == issued?}
+    F -- No --> G[Deny Access / Prevent Double-Entry]
+    G --> H([END])
+    F -- Yes --> I[Record Check-In]
+    I --> J[(Update Status: checked_in)]
+    J --> K[Record action in audit_logs]
+    K --> H

@@ -1,0 +1,11 @@
+stateDiagram-v2
+    [*] --> pending_department_approval
+    pending_department_approval --> pending_approval : Dept Approved
+    pending_department_approval --> Rejected : Dept Rejected
+    pending_approval --> approved : Ops Approved
+    pending_approval --> Rejected : Ops Rejected
+    approved --> issued : Pass Generated
+    issued --> checked_in : Arrived
+    checked_in --> checked_out : Departed
+    checked_out --> [*]
+    Rejected --> [*]

@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant R as Requester
+    participant DM as Dept Manager
+    participant OO as Operations Officer
+    participant PO as Pass Officer
+    participant GO as Gate Officer
+    participant S as System
+    
+    R->>S: Submit Request
+    S-->>DM: Pending Dept Approval
+    DM->>S: Review & Approve
+    S-->>OO: Pending Ops Approval
+    OO->>S: Review & Classify (VIP/LMV)
+    OO->>S: Approve
+    S-->>PO: Approved
+    PO->>S: Generate Pass & QR Code
+    S-->>GO: Issued
+    GO->>S: Scan QR (Check-In)
+    S-->>S: Update Status (checked_in)
+    GO->>S: Scan QR (Check-Out)
+    S-->>S: Update Status (checked_out)
+    Note over S: Audit Logs recorded for all changes

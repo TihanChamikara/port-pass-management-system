@@ -1,0 +1,9 @@
+graph TD
+    A([START]) --> B[Pass Officer logs in]
+    B --> C[View approved requests]
+    C --> D[Select request]
+    D --> E[Generate secure pass data]
+    E --> F[Generate QR code with hashed data & zone array]
+    F --> G[(Update Status: issued)]
+    G --> H[Record audit event in audit_logs]
+    H --> I([END])

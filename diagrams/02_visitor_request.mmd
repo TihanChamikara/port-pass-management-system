@@ -1,0 +1,14 @@
+graph TD
+    A([START]) --> B[Requester opens visitor portal]
+    B --> C[/Enter requester information/]
+    C --> D[/Enter visitor information/]
+    D --> E[/Enter visit information/]
+    E --> F[/Enter vehicle/equipment details/]
+    F --> G[Validate Sri Lankan NIC & Formats]
+    G --> H{Validation Successful?}
+    H -- No --> I[Display validation errors]
+    I --> C
+    H -- Yes --> J[Submit request]
+    J --> K[(Database: Store Request)]
+    K --> L[Status: pending_department_approval]
+    L --> M([END])

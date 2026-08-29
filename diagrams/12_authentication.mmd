@@ -1,0 +1,14 @@
+graph TD
+    A([START]) --> B[User enters credentials]
+    B --> C[Backend authenticates vs Bcrypt hash]
+    C --> D{Credentials Valid?}
+    D -- No --> E[Reject/Authentication Error]
+    E --> F([END])
+    D -- Yes --> G[Generate stateless JWT token]
+    G --> H[Identify UserRole]
+    H --> I[User requests API route]
+    I --> J{RBAC Authorized?}
+    J -- No --> K[Access Denied]
+    K --> F
+    J -- Yes --> L[Grant Access]
+    L --> F

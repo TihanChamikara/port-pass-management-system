@@ -1,0 +1,12 @@
+graph TD
+    A[Central Office PC<br/>10.170.82.8]
+    A --> B[FastAPI Port 8000]
+    A --> C[PostgreSQL Port 5432]
+    A --> D[Vite Assets Port 5173]
+    
+    E[Office LAN]
+    E -->|TCP 5173 / 8000| A
+    
+    F[HR PC Browser] --> E
+    G[Ops PC Browser] --> E
+    H[Gate Tablet Browser] --> E

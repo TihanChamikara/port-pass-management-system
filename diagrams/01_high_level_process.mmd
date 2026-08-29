@@ -1,0 +1,29 @@
+graph TD
+    A([Start]) --> B[Visitor Submits Request]
+    B --> C[Pending Approval Queue]
+    
+    C --> D{Available Reviewer}
+    
+    D -- Dept Manager --> E[Manager Validates Request]
+    E --> F{Manager Approved?}
+    F -- No --> G[Reject Request]
+    F -- Yes --> H[Ops Officer Validates Request]
+    
+    D -- Ops Officer<br/>(Manager Bypass) --> H
+    
+    H --> I{Ops Approved?}
+    I -- No --> G
+    I -- Yes --> J[Pass Officer Generates Pass]
+    
+    J --> K[Visitor Arrives at Gate]
+    K --> L[Gate Officer Scans QR]
+    L --> M{Pass Valid?}
+    M -- No --> N[Deny Access]
+    M -- Yes --> O[Record Check-In]
+    O --> P[Visitor Accesses Port]
+    P --> Q[Visitor Leaves]
+    Q --> R[Record Check-Out]
+    R --> S([End])
+    
+    G --> S
+    N --> S

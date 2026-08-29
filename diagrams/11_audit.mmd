@@ -1,0 +1,6 @@
+graph TD
+    A([User Action e.g., LOGIN, CHECK_IN]) --> B[Backend Process]
+    B --> C[(Database Transaction)]
+    C --> D[Asynchronously write to audit_logs]
+    D --> E[/Log fields: user_id, action, entity_type, UTC timestamp/]
+    E --> F([END])

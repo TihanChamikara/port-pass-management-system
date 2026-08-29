@@ -1,0 +1,10 @@
+graph TD
+    A([START]) --> B[Gate Officer identifies exiting visitor]
+    B --> C[Scan QR / Lookup]
+    C --> D{Status == checked_in?}
+    D -- No --> E[Flag Anomaly / Prevent Check-Out]
+    E --> F([END])
+    D -- Yes --> G[Record Check-Out]
+    G --> H[(Update Status: checked_out)]
+    H --> I[Record action in audit_logs]
+    I --> F
