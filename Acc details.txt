@@ -1,0 +1,28 @@
+  • Username: admin
+  • Password: Admin@123
+
+  Operations / Staff Level:
+
+  • Username: ops_officer
+  • Password: OpOfficer@123
+
+    gate_officer
+    GateOfficer@123
+  
+    pass_officer
+    PassOfficer@123
+
+
+  Department Managers:
+
+  • Username: dm_hr (HR & Administration)
+  • Username: dm_commercial (Commercial & Marketing)
+  • Username: dm_it (IT)
+  • Username: dm_engineering (Engineering)
+  • Username: dm_operations (Operations)
+  • Username: dm_security (Security)
+  • Username: dm_project (Project Team)
+  • Username: dm_hse (HSE Department)
+  • Username: dm_techno (Techno Commercial)
+  • Username: dm_finance (Finance)
+  • Shared Password for all DM accounts: DeptManager@123

@@ -56,7 +56,13 @@ def list_passes(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ) -> PassListResponse:
+    from app.models.visitor_request import VisitorRequest
+
     query = db.query(PassRecord)
+    
+    if _.role == "pass_officer":
+        query = query.outerjoin(VisitorRequest, VisitorRequest.pass_record_id == PassRecord.id)
+        query = query.filter(or_(VisitorRequest.visitor_type != "vip", VisitorRequest.id == None))
 
     if search:
         term = f"%{search.strip()}%"

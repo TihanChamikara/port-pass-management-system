@@ -1,48 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, DatePicker, Select, Card, Steps, message, Result, Typography, Divider, Tabs, Space, Tag, Descriptions, Spin } from 'antd';
-import { UserOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, EnvironmentOutlined, QuestionCircleOutlined, SearchOutlined, ClockCircleOutlined, GlobalOutlined, ApartmentOutlined, CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Form, Input, Button, DatePicker, Select, Card, Steps, message, Result, Typography, Divider, TimePicker } from 'antd';
+import { UserOutlined, GlobalOutlined, ApartmentOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import api from '../api/api';
 import dayjs from 'dayjs';
-import { useAuthStore } from '../features/authStore';
-import GroupPassPage from './GroupPassPage';
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 
+const DEPARTMENTS = [
+  'CEO',
+  'Finance',
+  'Operations',
+  'IT',
+  'Business Development',
+  'HSE',
+  'HR and Admin',
+  'Project',
+  'Engineering',
+  'ESG',
+  'Techno Commercial',
+  'Security',
+];
+
 const VisitorRequestPage = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState('new');
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(null);
-  const [trackingInfo, setTrackingInfo] = useState(null);
-  const [trackingLoading, setTrackingLoading] = useState(false);
   const [form] = Form.useForm();
-  const [trackForm] = Form.useForm();
   const [formValues, setFormValues] = useState({});
-
-  // Department state
-  const [departments, setDepartments] = useState([]);
-  const [departmentsLoading, setDepartmentsLoading] = useState(false);
-
-  // Load departments dynamically from the API
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      setDepartmentsLoading(true);
-      try {
-        const response = await api.get('/api/departments');
-        setDepartments(response.data || []);
-      } catch (error) {
-        console.error('Failed to load departments:', error);
-        message.warning('Could not load department list. Please refresh the page.');
-      } finally {
-        setDepartmentsLoading(false);
-      }
-    };
-    fetchDepartments();
-  }, []);
 
   const next = async () => {
     try {
@@ -61,51 +46,59 @@ const VisitorRequestPage = () => {
     setCurrent(current - 1);
   };
 
+  const handleFormFinish = () => {
+    if (current === steps.length - 1) {
+      onFinish();
+    } else {
+      next();
+    }
+  };
+
   const onFinish = async () => {
     setLoading(true);
     try {
-      // Merge current step values with previously saved values
       const currentStepValues = form.getFieldsValue();
       const values = { ...formValues, ...currentStepValues };
-      console.log('All form values:', values);
 
-      // Resolve department details from selected department_id
-      const selectedDept = departments.find(d => d.id === values.department_to_visit);
-
-      // Calculate visit duration in minutes and format local date strings
-      const entryTime = values.visit_dates[0];
-      const exitTime = values.visit_dates[1];
-      const durationMinutes = Math.max(15, Math.round(exitTime.diff(entryTime, 'minute')));
+      let durationMinutes = 480;
+      if (values.expected_time_in && values.expected_time_out) {
+        durationMinutes = Math.max(15, values.expected_time_out.diff(values.expected_time_in, 'minute'));
+      }
 
       const payload = {
         requester_name: values.requester_name,
-        requester_email: values.requester_email,
-        requester_phone: values.requester_phone || null,
+        requester_email: values.requester_email || 'internal-request@cwit.lk', // Fallback for backend validation
+        requester_phone: values.requester_phone,
+        request_source: 'internal',
         visitor: {
-          name: values.visitor_name,
-          email: values.visitor_email || null,
-          phone: values.visitor_phone || null,
-          nic_passport: values.visitor_nic || null,
-          organization: values.visitor_organization || null,
+          name: values.visitors?.[0]?.name || '',
+          email: null,
+          phone: values.visitors?.[0]?.contact_no || null,
+          nic_passport: values.visitors?.[0]?.nic_passport || null,
+          organization: values.visitors?.[0]?.company || null,
         },
         visit: {
           purpose: values.visitor_purpose,
-          building_department: selectedDept ? selectedDept.name : (values.building_department || null),
-          entry_time: entryTime.format('YYYY-MM-DDTHH:mm:ss'),
-          exit_time: exitTime.format('YYYY-MM-DDTHH:mm:ss'),
+          building_department: values.line_department || null,
+          host_employee_name: values.host_name || null,
+          host_employee_id: null,
+          entry_time: values.visit_date ? dayjs(values.visit_date).format('YYYY-MM-DD') + 'T' + (values.expected_time_in ? values.expected_time_in.format('HH:mm:ss') : '08:00:00') : null,
+          exit_time: values.visit_date ? dayjs(values.visit_date).format('YYYY-MM-DD') + 'T' + (values.expected_time_out ? values.expected_time_out.format('HH:mm:ss') : '17:00:00') : null,
           duration_minutes: durationMinutes,
         },
         access: {
-          requested_zones: values.requested_zones,
-          vehicle_number: values.vehicle_number || null,
-          carrying_equipment: values.carrying_equipment || false,
+          requested_zones: values.visit_area || [],
+          vehicle_number: values.vehicles?.[0]?.vehicle_no || null,
+          carrying_equipment: false,
         },
-        department_id: selectedDept ? selectedDept.id : null,
-        department_name: selectedDept ? selectedDept.name : null,
-        additional_notes: values.additional_notes || null,
+        department_id: null,
+        department_name: values.line_department || null,
+        additional_notes: null,
+        visitor_category: values.visitor_category || null,
+        visitors: values.visitors || [],
+        vehicles: values.vehicles?.filter(v => v?.vehicle_no) || [],
       };
 
-      console.log('Submitting payload:', JSON.stringify(payload));
       const response = await api.post('/api/visitor-requests/submit', payload);
       setSubmitted(response.data);
       message.success('Request submitted successfully!');
@@ -136,45 +129,6 @@ const VisitorRequestPage = () => {
     }
   };
 
-  const onTrack = async (values) => {
-    setTrackingLoading(true);
-    try {
-      const response = await api.post('/api/visitor-requests/track', values);
-      setTrackingInfo(response.data);
-    } catch (error) {
-      message.error('Request not found or email mismatch');
-      setTrackingInfo(null);
-    } finally {
-      setTrackingLoading(false);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      pending_department_approval: 'gold',
-      pending_approval: 'orange',
-      under_review: 'processing',
-      approved: 'green',
-      issued: 'blue',
-      checked_in: 'green',
-      checked_out: 'default',
-      rejected: 'red',
-      expired: 'volcano'
-    };
-    return colors[status] || 'blue';
-  };
-
-  const getApprovalStageLabel = (stage) => {
-    const labels = {
-      initial_submission: 'Initial Submission',
-      department_approval: 'Pending Department Approval',
-      operations_validation: 'Pending Security Approval',
-      pass_generation: 'Pass Generation',
-      access_verification: 'Access Verification',
-    };
-    return labels[stage] || stage;
-  };
-
   if (submitted) {
     return (
       <div className="visitor-page">
@@ -183,21 +137,19 @@ const VisitorRequestPage = () => {
             <Result
               status="success"
               title="Visitor Pass Request Submitted!"
-              subTitle={`Your Request ID is: ${submitted.request_id}. Please keep this for tracking.`}
+              subTitle={`Your Request ID is: ${submitted.request_id}. Please save this for your records.`}
               extra={[
-                <Button type="primary" key="home" onClick={() => setSubmitted(null)}>
+                <Button type="primary" key="home" onClick={() => { setSubmitted(null); form.resetFields(); setCurrent(0); setFormValues({}); }}>
                   Submit Another Request
                 </Button>,
-                <Button key="track" onClick={() => { setSubmitted(null); setActiveTab('track'); }}>
-                  Track Request
-                </Button>
               ]}
             />
             {submitted.department_name && (
               <div style={{ textAlign: 'center', marginTop: 8 }}>
-                <Tag color="gold" icon={<ApartmentOutlined />} style={{ fontSize: 13, padding: '4px 12px' }}>
+                <span style={{ background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 4, padding: '4px 12px', fontSize: 13 }}>
+                  <ApartmentOutlined style={{ marginRight: 6 }} />
                   Routed to: {submitted.department_name}
-                </Tag>
+                </span>
               </div>
             )}
           </Card>
@@ -212,57 +164,16 @@ const VisitorRequestPage = () => {
       content: (
         <>
           <Title level={4} style={{ color: '#1a3c6e' }}>Your Information</Title>
-          <Form.Item name="requester_name" label="Your Name" rules={[{ required: true }]}>
-            <Input prefix={<UserOutlined />} placeholder="John Doe" />
+          <Form.Item name="requester_name" label="Requester's Name" rules={[{ required: true, message: "Please enter your name." }]}>
+            <Input prefix={<UserOutlined />} placeholder="Your full name" />
           </Form.Item>
-          <Form.Item name="requester_email" label="Email Address" rules={[{ required: true, type: 'email' }]}>
-            <Input prefix={<MailOutlined />} placeholder="john@company.com" />
-          </Form.Item>
-          <Form.Item name="requester_phone" label="Phone Number">
-            <Input prefix={<PhoneOutlined />} placeholder="+94 77 123 4567" />
-          </Form.Item>
-        </>
-      ),
-    },
-    {
-      title: 'Visitor',
-      content: (
-        <>
-          <Title level={4} style={{ color: '#1a3c6e' }}>Visitor Details</Title>
-          <Form.Item name="visitor_name" label="Visitor Name" rules={[{ required: true }]}>
-            <Input prefix={<UserOutlined />} placeholder="Jane Smith" />
-          </Form.Item>
-          <Form.Item name="visitor_nic" label="NIC / Passport" rules={[{ required: true }]}>
-            <Input prefix={<IdcardOutlined />} placeholder="199012345678" />
-          </Form.Item>
-          <Form.Item name="visitor_phone" label="Visitor Phone">
-            <Input prefix={<PhoneOutlined />} placeholder="+94 71 987 6543" />
-          </Form.Item>
-          <Form.Item name="visitor_organization" label="Company / Organization">
-            <Input placeholder="Acme Corp" />
-          </Form.Item>
-        </>
-      ),
-    },
-    {
-      title: 'Visit Info',
-      content: (
-        <>
-          <Title level={4} style={{ color: '#1a3c6e' }}>Visit Details</Title>
-          <Form.Item name="visitor_purpose" label="Purpose of Visit" rules={[{ required: true }]}>
-            <Input.TextArea placeholder="Maintenance, Meeting, etc." rows={3} />
-          </Form.Item>
-
-          {/* ── Department to Visit (new required field) ── */}
           <Form.Item
-            name="department_to_visit"
-            label="Department to Visit"
-            rules={[{ required: true, message: 'Please select a department to visit.' }]}
+            name="line_department"
+            label="Line Department"
+            rules={[{ required: true, message: 'Please select a line department.' }]}
           >
             <Select
-              placeholder="Select the department you are visiting"
-              loading={departmentsLoading}
-              notFoundContent={departmentsLoading ? <Spin size="small" /> : 'No departments found'}
+              placeholder="Select a line department"
               suffixIcon={<ApartmentOutlined />}
               showSearch
               optionFilterProp="children"
@@ -270,186 +181,129 @@ const VisitorRequestPage = () => {
                 (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
               }
             >
-              {departments.map(dept => (
-                <Select.Option key={dept.id} value={dept.id}>
-                  {dept.name}
+              {DEPARTMENTS.map(dept => (
+                <Select.Option key={dept} value={dept}>
+                  {dept}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-
-          <Form.Item name="visit_dates" label="Date & Time" rules={[{ required: true }]}>
-            <DatePicker.RangePicker
-              showTime
-              format="YYYY-MM-DD HH:mm"
+        </>
+      ),
+    },
+    {
+      title: 'Visit Details',
+      content: (
+        <>
+          <Title level={4} style={{ color: '#1a3c6e' }}>Visit Details</Title>
+          <Form.Item name="visitor_purpose" label="Visit Purpose" rules={[{ required: true }]}>
+            <Select placeholder="Select Purpose">
+              {["Business Meeting", "Official Visit", "Site Visit", "Vessel Operations", "Cargo Operations", "Project Work", "Maintenance Work", "Equipment Inspection", "Safety Inspection", "Security Inspection", "Training Program", "VIP Visit", "Departmental Guest", "Emergency Response", "Audit", "Other"].map(opt => (
+                <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="visitor_category" label="Visitor Category" rules={[{ required: true }]}>
+            <Select placeholder="Select Category">
+              {["Internal Visitor (CWIT Staff)", "Port User Visitor", "Contractor/Vendor", "Government Official", "VIP/Official Visitor", "Business Visitor", "Department Visitor", "Educational Visit", "General External Visitor", "Other"].map(opt => (
+                <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="visit_area" label="Visit Area" rules={[{ required: true }]}>
+            <Select mode="multiple" placeholder="Select Areas">
+              {["Onboard Vessel", "Wharf Area / Quay Side", "Yard Area", "Gate Complex", "Container Inspection Area", "Empty Container Yard", "Reefer Monitoring Area", "POB", "Pass Office & Security Building", "Wharf Building", "OHS Building", "DG Station", "Workshop / Maintenance Facility"].map(opt => (
+                <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="visit_date" label="Visit Date" rules={[{ required: true }]}>
+            <DatePicker
+              format="YYYY-MM-DD"
               style={{ width: '100%' }}
               disabledDate={(current) => current && (current < dayjs().startOf('day') || current > dayjs().add(30, 'day').endOf('day'))}
             />
           </Form.Item>
-          <Form.Item name="requested_zones" label="Zones to Access" rules={[{ required: true }]}>
-            <Select mode="multiple" placeholder="Select Zones">
-              <Select.Option value="zone_1">Zone 1 (Office)</Select.Option>
-              <Select.Option value="zone_2">Zone 2 (Warehouse)</Select.Option>
-              <Select.Option value="zone_3">Zone 3 (Loading Bay)</Select.Option>
-              <Select.Option value="zone_4">Zone 4 (Restricted)</Select.Option>
-            </Select>
+          <Form.Item name="expected_time_in" label="Expected Time In" rules={[{ required: true }]}>
+            <TimePicker format="HH:mm" style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="vehicle_number" label="Vehicle Number (If any)">
-            <Input placeholder="WP ABC-1234" />
+          <Form.Item name="expected_time_out" label="Expected Time Out" rules={[{ required: true }]}>
+            <TimePicker format="HH:mm" style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="host_name" label="Host Name / Line Dept Representative">
+            <Input placeholder="Name of the person you are meeting" />
           </Form.Item>
         </>
       ),
     },
-  ];
-
-  const trackContent = (
-    <div style={{ padding: '20px 0' }}>
-      <Title level={4} style={{ color: '#1a3c6e' }}>Track Your Request</Title>
-      <Form
-        form={trackForm}
-        layout="vertical"
-        onFinish={onTrack}
-      >
-        <Form.Item name="request_id" label="Request ID" rules={[{ required: true }]}>
-          <Input prefix={<SearchOutlined />} placeholder="REQ-XXXXXX" />
-        </Form.Item>
-        <Form.Item name="requester_email" label="Your Email" rules={[{ required: true, type: 'email' }]}>
-          <Input prefix={<MailOutlined />} placeholder="The email used during submission" />
-        </Form.Item>
-        <Button type="primary" htmlType="submit" loading={trackingLoading} block icon={<SearchOutlined />}>
-          Track Status
-        </Button>
-      </Form>
-
-      {trackingInfo && (
-        <Card style={{ marginTop: 24, borderLeft: '4px solid #1a3c6e' }}>
-          {/* Status badge */}
-          <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <Tag color={getStatusColor(trackingInfo.status)} style={{ fontSize: '14px', padding: '4px 16px' }}>
-              {trackingInfo.status_display.toUpperCase()}
-            </Tag>
-          </div>
-
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Visitor">{trackingInfo.visitor_name}</Descriptions.Item>
-
-            {/* Department row — shown when a department was selected */}
-            {trackingInfo.department_name && (
-              <Descriptions.Item label="Department">
-                <Tag icon={<ApartmentOutlined />} color="blue">
-                  {trackingInfo.department_name}
-                </Tag>
-              </Descriptions.Item>
-            )}
-
-            {/* Current Approval Stage */}
-            <Descriptions.Item label="Current Approval Stage">
-              {getApprovalStageLabel(trackingInfo.current_stage)}
-            </Descriptions.Item>
-
-            {/* Current Status (human-readable detail) */}
-            <Descriptions.Item label="Current Status">
-              {trackingInfo.status_display}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Destination">
-              {trackingInfo.requested_zones.join(', ').toUpperCase()}
-            </Descriptions.Item>
-            <Descriptions.Item label="Scheduled Entry">
-              {dayjs(trackingInfo.requested_date).format('YYYY-MM-DD HH:mm')}
-            </Descriptions.Item>
-            <Descriptions.Item label="Scheduled Exit">
-              {dayjs(trackingInfo.requested_end_date).format('YYYY-MM-DD HH:mm')}
-            </Descriptions.Item>
-
-            {/* Rejection details */}
-            {trackingInfo.status === 'rejected' && (
+    {
+      title: 'Visitors',
+      content: (
+        <>
+          <Title level={4} style={{ color: '#1a3c6e' }}>Visitor Details</Title>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>Add up to 4 visitors for this request.</Text>
+          <Form.List name="visitors">
+            {(fields, { add, remove }) => (
               <>
-                {trackingInfo.rejected_by && (
-                  <Descriptions.Item label="Rejected By" labelStyle={{ color: 'red' }}>
-                    <Text type="danger">{trackingInfo.rejected_by}</Text>
-                  </Descriptions.Item>
-                )}
-                {trackingInfo.rejection_reason && (
-                  <Descriptions.Item label="Rejection Comments" labelStyle={{ color: 'red' }}>
-                    <Text type="danger">{trackingInfo.rejection_reason}</Text>
-                  </Descriptions.Item>
-                )}
-                {trackingInfo.rejected_at && (
-                  <Descriptions.Item label="Rejected On" labelStyle={{ color: 'red' }}>
-                    <Text type="danger">
-                      {dayjs(trackingInfo.rejected_at).format('YYYY-MM-DD HH:mm')}
-                    </Text>
-                  </Descriptions.Item>
-                )}
+                {fields.map(({ key, name, ...restField }, index) => (
+                  <Card key={key} size="small" title={`Visitor S.N ${index + 1}`} extra={fields.length > 1 ? <MinusCircleOutlined onClick={() => remove(name)} style={{ color: 'red' }} /> : null} style={{ marginBottom: 16 }}>
+                    <Form.Item {...restField} name={[name, 'name']} rules={[{ required: true, message: 'Missing visitor name' }]} style={{ marginBottom: 12 }}>
+                      <Input placeholder="Visitor Name" />
+                    </Form.Item>
+                    <Form.Item {...restField} name={[name, 'nic_passport']} rules={[{ required: true, message: 'Missing NIC / Passport No.' }]} style={{ marginBottom: 12 }}>
+                      <Input placeholder="NIC / Passport No." />
+                    </Form.Item>
+                    <Form.Item {...restField} name={[name, 'company']} style={{ marginBottom: 12 }}>
+                      <Input placeholder="Company / Organization" />
+                    </Form.Item>
+                    <Form.Item {...restField} name={[name, 'contact_no']} style={{ marginBottom: 12 }}>
+                      <Input placeholder="Contact No." />
+                    </Form.Item>
+                  </Card>
+                ))}
+                <Form.Item>
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} disabled={fields.length >= 4}>
+                    Add Visitor
+                  </Button>
+                </Form.Item>
               </>
             )}
-          </Descriptions>
-
-          {trackingInfo.status === 'issued' && (
-            <div style={{ marginTop: 16, textAlign: 'center' }}>
-              <Text strong style={{ color: '#059669' }}>Pass Issued! Present your NIC at the gate.</Text>
-            </div>
-          )}
-
-          {/* Pending department approval — show routing info */}
-          {trackingInfo.status === 'pending_department_approval' && trackingInfo.department_name && (
-            <div style={{ marginTop: 16, padding: '12px 16px', background: '#fffbe6', borderRadius: 6, border: '1px solid #ffe58f' }}>
-              <Text>
-                <ApartmentOutlined style={{ marginRight: 8, color: '#faad14' }} />
-                Your request has been routed to the <strong>{trackingInfo.department_name}</strong> department manager for approval.
-              </Text>
-            </div>
-          )}
-
-          {/* After department approval — pending security */}
-          {trackingInfo.status === 'pending_approval' && (
-            <div style={{ marginTop: 16, padding: '12px 16px', background: '#e6f7ff', borderRadius: 6, border: '1px solid #91d5ff' }}>
-              <Text>
-                <CheckCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
-                Department approval received. Awaiting Security / Operations verification.
-              </Text>
-            </div>
-          )}
-        </Card>
-      )}
-    </div>
-  );
-
-  const canIssueGroupPass = isAuthenticated && ['admin', 'pass_officer'].includes(user?.role);
-
-  const groupPassContent = (
-    <div style={{ padding: '10px 0' }}>
-      {canIssueGroupPass ? (
-        <GroupPassPage embedded={true} />
-      ) : (
-        <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-          <Card style={{ maxWidth: 500, margin: '0 auto', border: '1px dashed #d9d9d9', borderRadius: 8, background: 'transparent' }}>
-            <div style={{ marginBottom: 16 }}>
-              <LockOutlined style={{ fontSize: 48, color: '#ff4d4f' }} />
-            </div>
-            <Title level={4} style={{ color: '#1a3c6e', marginBottom: 12 }}>Access Restricted</Title>
-            <Paragraph style={{ color: '#64748b', fontSize: 14, marginBottom: 24 }}>
-              Issuing group passes is restricted to authorized Pass Officers and Administrators.
-              Please sign in to access this feature.
-            </Paragraph>
-            <Button 
-              type="primary" 
-              size="large" 
-              onClick={() => navigate('/login')}
-              style={{ height: 44, padding: '0 32px', fontWeight: 600 }}
-            >
-              Sign In as Officer
-            </Button>
-          </Card>
-        </div>
-      )}
-    </div>
-  );
+          </Form.List>
+        </>
+      ),
+    },
+    {
+      title: 'Vehicles',
+      content: (
+        <>
+          <Title level={4} style={{ color: '#1a3c6e' }}>Vehicle Details</Title>
+          <Paragraph type="secondary" style={{ marginBottom: 16 }}>Add up to 4 vehicles for this request. (Optional)</Paragraph>
+          <Form.List name="vehicles">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }, index) => (
+                  <Card key={key} size="small" title={`Vehicle S.N ${index + 1}`} extra={fields.length > 1 ? <MinusCircleOutlined onClick={() => remove(name)} style={{ color: 'red' }} /> : null} style={{ marginBottom: 16 }}>
+                    <Form.Item {...restField} name={[name, 'vehicle_no']} style={{ marginBottom: 0 }}>
+                      <Input placeholder="Vehicle No." />
+                    </Form.Item>
+                  </Card>
+                ))}
+                <Form.Item>
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} disabled={fields.length >= 4}>
+                    Add Vehicle
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+        </>
+      ),
+    }
+  ];
 
   return (
     <div className="visitor-page">
-      <Card className="visitor-card" style={{ maxWidth: '820px', margin: '0 auto' }}>
+      <Card className="visitor-card" style={{ maxWidth: '820px', margin: '0 auto', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)', borderRadius: 12 }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{
             width: 56,
@@ -459,75 +313,54 @@ const VisitorRequestPage = () => {
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 12
+            marginBottom: 12,
+            boxShadow: '0 4px 14px 0 rgba(26, 60, 110, 0.4)'
           }}>
             <GlobalOutlined style={{ fontSize: 24, color: '#fff' }} />
           </div>
-          <Title level={2} style={{ color: '#1a3c6e', marginBottom: 4 }}>Port Pass Request Portal</Title>
-          <Text type="secondary">Enterprise Visitor Management System</Text>
+          <Title level={2} style={{ color: '#1a3c6e', marginBottom: 4 }}>Internal Visitor Request</Title>
+          <Text type="secondary">Submit your visitor pass request</Text>
         </div>
 
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          centered
-          items={[
-            {
-              key: 'new',
-              label: <span><IdcardOutlined /> New Request</span>,
-              children: (
-                <div style={{ marginTop: 20 }}>
-                  <Steps current={current} style={{ marginBottom: '40px' }}>
-                    {steps.map((item) => (
-                      <Step key={item.title} title={item.title} />
-                    ))}
-                  </Steps>
+        <div style={{ marginTop: 20 }}>
+          <Steps current={current} style={{ marginBottom: '35px' }} size="small">
+            {steps.map((item) => (
+              <Step key={item.title} title={item.title} />
+            ))}
+          </Steps>
 
-                  <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={onFinish}
-                    preserve={true}
-                    initialValues={{ requested_zones: ['zone_1'] }}
-                  >
-                    <div className="steps-content">{steps[current].content}</div>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleFormFinish}
+            preserve={true}
+            initialValues={{ visitors: [{}], vehicles: [{}] }}
+          >
+            <div className="steps-content">{steps[current].content}</div>
 
-                    <Divider />
+            <Divider />
 
-                    <div className="steps-action" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      {current > 0 && (
-                        <Button onClick={() => prev()}>
-                           Previous
-                        </Button>
-                      )}
-                      <div></div>
-                      {current < steps.length - 1 && (
-                        <Button type="primary" onClick={() => next()}>
-                          Next Step
-                        </Button>
-                      )}
-                      {current === steps.length - 1 && (
-                        <Button type="primary" htmlType="submit" loading={loading}>
-                          Submit Request
-                        </Button>
-                      )}
-                    </div>
-                  </Form>
-                </div>
-              )
-            },
-            {
-              key: 'track',
-              label: <span><ClockCircleOutlined /> Track Request</span>,
-              children: trackContent
-            },
-            {
-              key: 'group-pass',
-              label: <span><TeamOutlined /> Group Pass Issue</span>,
-              children: groupPassContent
-            }
-          ]}
-        />
+            <div className="steps-action" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              {current > 0 ? (
+                <Button onClick={() => prev()}>
+                  Previous
+                </Button>
+              ) : (
+                <div />
+              )}
+
+              {current < steps.length - 1 ? (
+                <Button type="primary" onClick={() => next()}>
+                  Next Step
+                </Button>
+              ) : (
+                <Button type="primary" htmlType="submit" loading={loading}>
+                  Submit Request
+                </Button>
+              )}
+            </div>
+          </Form>
+        </div>
       </Card>
     </div>
   );

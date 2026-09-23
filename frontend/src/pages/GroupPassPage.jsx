@@ -136,7 +136,8 @@ const GroupPassPage = ({ embedded = false }) => {
               noStyle
               shouldUpdate={(prev, curr) => prev.pass_type !== curr.pass_type}
             >
-              {({ getFieldValue }) =>
+
+              {/* getFieldValue }) =>
                 getFieldValue('pass_type') !== 'purple' ? (
                   <Form.Item name="zone" label="Designated Zone" rules={[{ required: true }]}>
                     <Select placeholder="Select zone">
@@ -148,7 +149,8 @@ const GroupPassPage = ({ embedded = false }) => {
                     <Input value="All Zones" disabled placeholder="Purple pass covers all zones" />
                   </Form.Item>
                 )
-              }
+              }*/}
+              
             </Form.Item>
             <Form.Item name="notes" label="Additional Notes">
               <Input.TextArea rows={3} placeholder="Any special instructions..." />

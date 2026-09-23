@@ -100,6 +100,13 @@ class WorkflowStateMachine:
 
         StateTransition(
             RequestState.UNDER_REVIEW,
+            RequestState.ISSUED,
+            {UserRole.OPERATIONS_OFFICER, UserRole.ADMIN},
+            description="Operations officer directly issues pass (for VIPs)"
+        ),
+
+        StateTransition(
+            RequestState.UNDER_REVIEW,
             RequestState.REJECTED,
             {UserRole.OPERATIONS_OFFICER, UserRole.ADMIN},
             description="Operations officer rejects request"
@@ -109,8 +116,8 @@ class WorkflowStateMachine:
         StateTransition(
             RequestState.APPROVED,
             RequestState.ISSUED,
-            {UserRole.PASS_OFFICER, UserRole.ADMIN},
-            description="Pass officer generates and issues pass"
+            {UserRole.PASS_OFFICER, UserRole.OPERATIONS_OFFICER, UserRole.ADMIN},
+            description="Pass/Ops officer generates and issues pass"
         ),
 
         # Access verification flow

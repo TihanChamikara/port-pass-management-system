@@ -138,6 +138,10 @@ def ensure_visitor_requests_schema(engine: Engine) -> None:
         ("additional_notes", "TEXT"),
         ("supporting_docs_urls", "TEXT"),
         ("workflow_transitions", "TEXT"),
+        ("visitor_category", "VARCHAR(100)"),
+        ("visitors_json", "TEXT"),
+        ("vehicles_json", "TEXT"),
+        ("request_source", "VARCHAR(20) DEFAULT 'external'"),
     ]
 
     with engine.begin() as connection:

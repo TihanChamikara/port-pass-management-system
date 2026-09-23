@@ -305,10 +305,10 @@ function Pie3DChart({ data, height = 280, isDarkMode }) {
 // Dashboard header
 // ─────────────────────────────────────────────────────────────────────────────
 
-function DashboardHeader({ title, subtitle, onRefresh, loading, children }) {
+function DashboardHeader({ title, subtitle, onRefresh, loading, children, actionFilters }) {
   const theme = useTheme();
   return (
-    <Box sx={{ animation: "fadeInUp 0.4s ease-out both" }}>
+    <Box sx={{ animation: "fadeInUp 0.4s ease-out both", mb: children ? 0 : 2 }}>
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 2, mb: 1 }}>
         <Box>
           <Typography
@@ -331,16 +331,19 @@ function DashboardHeader({ title, subtitle, onRefresh, loading, children }) {
             {subtitle}
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<RefreshIcon />}
-          onClick={onRefresh}
-          disabled={loading}
-          sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2 }}
-        >
-          Refresh
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+          {actionFilters}
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<RefreshIcon />}
+            onClick={onRefresh}
+            disabled={loading}
+            sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2, height: 36 }}
+          >
+            Refresh
+          </Button>
+        </Box>
       </Box>
       {children}
     </Box>
@@ -351,7 +354,7 @@ function DashboardHeader({ title, subtitle, onRefresh, loading, children }) {
 // ADMIN DASHBOARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-function AdminDashboard({ data, startDate, setStartDate, endDate, setEndDate, onRefresh, loading }) {
+function AdminDashboard({ data, onRefresh, loading, actionFilters }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const axisColor = isDark ? "#F8FAFC" : "#0F172A";
@@ -541,28 +544,8 @@ function AdminDashboard({ data, startDate, setStartDate, endDate, setEndDate, on
         subtitle="Complete enterprise overview — all KPIs, statistics and activity"
         onRefresh={onRefresh}
         loading={loading}
-      >
-        {/* Date range filter */}
-        <Grid container spacing={2} sx={{ maxWidth: 560, mt: 1 }}>
-          <Grid item xs={6} sm={5}>
-            <TextField
-              label="Start Date" type="date" value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              InputLabelProps={{ shrink: true }} fullWidth size="small"
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-            />
-          </Grid>
-          <Grid item xs={6} sm={5}>
-            <TextField
-              label="End Date" type="date" value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              InputLabelProps={{ shrink: true }} fullWidth size="small"
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-            />
-          </Grid>
-        </Grid>
-      </DashboardHeader>
-
+        actionFilters={actionFilters}
+      />
 
       {/* Pass KPI Row */}
       <Box>
@@ -794,7 +777,7 @@ function AdminDashboard({ data, startDate, setStartDate, endDate, setEndDate, on
 // PASS OFFICER DASHBOARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-function PassOfficerDashboard({ data, onRefresh, loading }) {
+function PassOfficerDashboard({ data, onRefresh, loading, actionFilters }) {
   const navigate = useNavigate();
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -817,6 +800,7 @@ function PassOfficerDashboard({ data, onRefresh, loading }) {
         subtitle="Operational hub — pass issuance, QR generation and active passes"
         onRefresh={onRefresh}
         loading={loading}
+        actionFilters={actionFilters}
       />
 
       {/* KPI Row */}
@@ -906,7 +890,7 @@ function PassOfficerDashboard({ data, onRefresh, loading }) {
 // OPERATIONS OFFICER DASHBOARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-function OpsOfficerDashboard({ data, onRefresh, loading }) {
+function OpsOfficerDashboard({ data, onRefresh, loading, actionFilters }) {
   const navigate = useNavigate();
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -923,6 +907,7 @@ function OpsOfficerDashboard({ data, onRefresh, loading }) {
         subtitle="Request review pipeline — approvals, rejections and workload metrics"
         onRefresh={onRefresh}
         loading={loading}
+        actionFilters={actionFilters}
       />
 
       {/* KPI Row */}
@@ -1162,7 +1147,7 @@ function VipArrivalsCard({ items }) {
 // GATE OFFICER DASHBOARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-function GateOfficerDashboard({ data, onRefresh, loading }) {
+function GateOfficerDashboard({ data, onRefresh, loading, actionFilters }) {
   const navigate = useNavigate();
   return (
     <Stack spacing={4}>
@@ -1171,6 +1156,7 @@ function GateOfficerDashboard({ data, onRefresh, loading }) {
         subtitle="Today's gate activity — check-ins, check-outs and active visitor status"
         onRefresh={onRefresh}
         loading={loading}
+        actionFilters={actionFilters}
       />
 
       {/* KPI Row */}
@@ -1243,92 +1229,621 @@ function GateOfficerDashboard({ data, onRefresh, loading }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DEPARTMENT MANAGER DASHBOARD
+// DEPARTMENT MANAGER DASHBOARD — SPATIAL UI
 // ─────────────────────────────────────────────────────────────────────────────
 
-function DeptManagerDashboard({ data, onRefresh, loading }) {
+// ── Spatial shared primitives ────────────────────────────────────────────────
+
+function SpatialCard({ children, sx = {}, hover = true, ...props }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  return (
+    <Box
+      sx={{
+        background: isDark
+          ? "rgba(15,23,42,0.7)"
+          : "rgba(255,255,255,0.72)",
+        backdropFilter: "blur(20px) saturate(160%)",
+        WebkitBackdropFilter: "blur(20px) saturate(160%)",
+        border: isDark
+          ? "1px solid rgba(255,255,255,0.08)"
+          : "1px solid rgba(255,255,255,0.9)",
+        borderRadius: "20px",
+        boxShadow: isDark
+          ? "0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)"
+          : "0 8px 32px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.04), inset 0 1px 0 rgba(255,255,255,0.9)",
+        transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+        ...(hover && {
+          "&:hover": {
+            transform: "translateY(-4px)",
+            boxShadow: isDark
+              ? "0 20px 60px rgba(0,0,0,0.55), 0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1)"
+              : "0 20px 60px rgba(15,23,42,0.14), 0 4px 16px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,1)",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.14)"
+              : "1px solid rgba(255,255,255,1)",
+          },
+        }),
+        "@media (prefers-reduced-motion: reduce)": { transition: "none", "&:hover": { transform: "none" } },
+        ...sx,
+      }}
+      {...props}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function SpatialKPI({ title, value, color, icon, subtitle, accentGlyph }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  return (
+    <SpatialCard sx={{ p: 2.5, position: "relative", overflow: "hidden", height: "100%" }}>
+      {/* Ambient glow blob */}
+      <Box sx={{
+        position: "absolute", top: -24, right: -24, width: 90, height: 90,
+        borderRadius: "50%", background: color, opacity: isDark ? 0.12 : 0.09,
+        filter: "blur(28px)", pointerEvents: "none",
+      }} />
+      <Box sx={{ position: "relative", zIndex: 1 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
+          <Box sx={{
+            width: 38, height: 38, borderRadius: "11px",
+            background: `${color}18`,
+            border: `1px solid ${color}30`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "1.1rem",
+          }}>
+            {icon}
+          </Box>
+          {accentGlyph && (
+            <Typography sx={{ fontSize: "0.6rem", fontWeight: 800, color, letterSpacing: "1px", textTransform: "uppercase", mt: 0.5 }}>
+              {accentGlyph}
+            </Typography>
+          )}
+        </Box>
+        <Typography sx={{ color, fontWeight: 900, fontSize: "2.4rem", lineHeight: 1, letterSpacing: "-1px" }}>
+          <AnimatedNumber value={typeof value === "number" ? value : 0} />
+        </Typography>
+        <Typography sx={{
+          fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.6px",
+          color: isDark ? "rgba(203,213,225,0.75)" : "rgba(71,85,105,0.8)", mt: 0.5,
+        }}>
+          {title}
+        </Typography>
+        {subtitle && (
+          <Typography sx={{ fontSize: "0.7rem", color: isDark ? "rgba(148,163,184,0.6)" : "rgba(100,116,139,0.7)", mt: 0.5 }}>
+            {subtitle}
+          </Typography>
+        )}
+      </Box>
+    </SpatialCard>
+  );
+}
+
+function SpatialHero({ deptLabel, pendingCount, isDark, onRefresh, loading, actionFilters }) {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const hasUrgent = pendingCount > 0;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
+  return (
+    <SpatialCard hover={false} sx={{
+      p: { xs: 2.5, md: 3.5 },
+      background: isDark
+        ? "linear-gradient(135deg, rgba(14,26,54,0.9) 0%, rgba(15,23,42,0.85) 60%, rgba(10,18,38,0.9) 100%)"
+        : "linear-gradient(135deg, rgba(11,19,41,0.92) 0%, rgba(15,40,80,0.88) 60%, rgba(7,26,60,0.9) 100%)",
+      position: "relative", overflow: "hidden",
+    }}>
+      {/* Ambient blobs */}
+      <Box sx={{ position: "absolute", top: -60, left: -40, width: 220, height: 220, borderRadius: "50%", background: "#0ea5e9", opacity: 0.07, filter: "blur(60px)", pointerEvents: "none" }} />
+      <Box sx={{ position: "absolute", bottom: -40, right: 80, width: 180, height: 180, borderRadius: "50%", background: "#8b5cf6", opacity: 0.06, filter: "blur(50px)", pointerEvents: "none" }} />
+      <Box sx={{ position: "absolute", top: 30, right: -30, width: 130, height: 130, borderRadius: "50%", background: "#10b981", opacity: 0.06, filter: "blur(44px)", pointerEvents: "none" }} />
+      {/* Subtle grid */}
+      <Box sx={{
+        position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.03,
+        backgroundImage: "linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px)",
+        backgroundSize: "40px 40px",
+      }} />
+
+      <Box sx={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 2 }}>
+        <Box>
+          {/* Status pill */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+            <Box sx={{ width: 7, height: 7, borderRadius: "50%", background: hasUrgent ? "#f59e0b" : "#10b981", boxShadow: hasUrgent ? "0 0 8px rgba(245,158,11,0.8)" : "0 0 8px rgba(16,185,129,0.8)" }} />
+            <Typography sx={{ color: hasUrgent ? "#f59e0b" : "#10b981", fontSize: "0.68rem", fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase" }}>
+              {hasUrgent ? `${pendingCount} request${pendingCount > 1 ? "s" : ""} require attention` : "Department activity is normal"}
+            </Typography>
+          </Box>
+          <Typography sx={{ color: "#f1f5f9", fontWeight: 900, fontSize: { xs: "1.5rem", md: "2rem" }, lineHeight: 1.1, letterSpacing: "-0.5px", mb: 0.5 }}>
+            {greeting}, Manager
+          </Typography>
+          <Typography sx={{ color: "rgba(148,163,184,0.85)", fontSize: "0.9rem", mb: 2 }}>
+            Here's what's happening with your department's visitor requests.
+          </Typography>
+          {/* Dept badge */}
+          <Box sx={{
+            display: "inline-flex", alignItems: "center", gap: 1, px: 1.5, py: 0.7,
+            background: "rgba(14,165,233,0.12)", border: "1px solid rgba(14,165,233,0.25)",
+            borderRadius: "10px",
+          }}>
+            <Typography sx={{ fontSize: "0.85rem" }}>🏢</Typography>
+            <Typography sx={{ color: "#7dd3fc", fontWeight: 700, fontSize: "0.82rem" }}>{deptLabel}</Typography>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1.5 }}>
+          <Typography sx={{ color: "rgba(148,163,184,0.7)", fontSize: "0.75rem", fontWeight: 500 }}>{dateStr}</Typography>
+          {actionFilters}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button
+              size="small"
+              onClick={onRefresh}
+              disabled={loading}
+              sx={{
+                background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
+                color: "#e2e8f0", textTransform: "none", fontWeight: 600, borderRadius: "10px",
+                px: 2, fontSize: "0.8rem", height: 32,
+                "&:hover": { background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.25)" },
+              }}
+            >
+              ↻ Refresh
+            </Button>
+            <Button
+              size="small"
+              onClick={() => navigate("/dept-approvals")}
+              sx={{
+                background: "rgba(245,158,11,0.18)", border: "1px solid rgba(245,158,11,0.35)",
+                color: "#fbbf24", textTransform: "none", fontWeight: 700, borderRadius: "10px",
+                px: 2, fontSize: "0.8rem", height: 32,
+                "&:hover": { background: "rgba(245,158,11,0.28)", border: "1px solid rgba(245,158,11,0.5)" },
+              }}
+            >
+              ⚡ Open Queue
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </SpatialCard>
+  );
+}
+
+function SpatialPipeline({ data, isDark }) {
+  const stages = [
+    { label: "Submitted", key: null, color: "#6366f1", icon: "📥", value: data.total_requests_all_time, desc: "All time" },
+    { label: "Pending", key: "pending_dept_approval", color: "#f59e0b", icon: "⏳", value: data.pending_dept_approval, desc: "Awaiting review" },
+    { label: "Approved", key: "approved_by_dept", color: "#10b981", icon: "✅", value: data.approved_by_dept, desc: "Forwarded" },
+    { label: "Rejected", key: "rejected_by_dept", color: "#ef4444", icon: "❌", value: data.rejected_by_dept, desc: "Declined" },
+    { label: "Security", key: null, color: "#0ea5e9", icon: "🛡️", value: null, desc: "Ops verification" },
+    { label: "Completed", key: null, color: "#8b5cf6", icon: "🏁", value: null, desc: "Pass issued" },
+  ];
+
+  return (
+    <SpatialCard hover={false} sx={{ p: 3 }}>
+      <Typography sx={{ fontWeight: 800, fontSize: "0.9rem", letterSpacing: "0.3px", mb: 3, color: isDark ? "#e2e8f0" : "#1e293b" }}>
+        🔄 Department Pipeline
+      </Typography>
+      <Box sx={{
+        display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0,
+        overflowX: "auto", pb: 1,
+      }}>
+        {stages.map((stage, idx) => (
+          <Box key={stage.label} sx={{ display: "flex", alignItems: "center" }}>
+            {/* Node */}
+            <Box sx={{
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5,
+              minWidth: 80,
+              transition: "all 0.2s",
+            }}>
+              <Box sx={{
+                width: 48, height: 48, borderRadius: "14px",
+                background: stage.value != null
+                  ? `${stage.color}20`
+                  : isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.04)",
+                border: stage.value != null
+                  ? `1.5px solid ${stage.color}50`
+                  : isDark ? "1.5px solid rgba(255,255,255,0.1)" : "1.5px solid rgba(15,23,42,0.1)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "1.2rem",
+                boxShadow: stage.value != null ? `0 4px 16px ${stage.color}25` : "none",
+                transition: "all 0.3s",
+                "&:hover": stage.value != null ? { transform: "scale(1.1)", boxShadow: `0 8px 24px ${stage.color}35` } : {},
+              }}>
+                {stage.icon}
+              </Box>
+              <Typography sx={{
+                fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.4px",
+                color: stage.value != null ? stage.color : (isDark ? "rgba(148,163,184,0.5)" : "rgba(100,116,139,0.5)"),
+              }}>
+                {stage.label}
+              </Typography>
+              {stage.value != null ? (
+                <Typography sx={{ fontSize: "1.1rem", fontWeight: 900, color: stage.color, lineHeight: 1 }}>
+                  {stage.value}
+                </Typography>
+              ) : (
+                <Typography sx={{ fontSize: "0.6rem", color: isDark ? "rgba(148,163,184,0.4)" : "rgba(100,116,139,0.4)" }}>
+                  {stage.desc}
+                </Typography>
+              )}
+            </Box>
+            {/* Connector */}
+            {idx < stages.length - 1 && (
+              <Box sx={{
+                width: { xs: 16, sm: 28, md: 36 }, height: 2,
+                background: isDark
+                  ? "linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))"
+                  : "linear-gradient(90deg, rgba(15,23,42,0.08), rgba(15,23,42,0.04))",
+                borderRadius: 1, mx: 0.5, flexShrink: 0,
+              }} />
+            )}
+          </Box>
+        ))}
+      </Box>
+    </SpatialCard>
+  );
+}
+
+function SpatialActivityTimeline({ items, deptLabel, isDark }) {
+  const statusIcon = (s) => {
+    if (s === "approved" || s === "pending_approval") return "✅";
+    if (s === "rejected") return "❌";
+    if (s === "pending_department_approval") return "⏳";
+    if (s === "issued") return "🎫";
+    if (s === "checked_in") return "🏢";
+    if (s === "checked_out") return "🚪";
+    return "📋";
+  };
+  const timeAgo = (ts) => {
+    if (!ts) return "";
+    const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
+
+  return (
+    <SpatialCard hover={false} sx={{ p: 3, height: "100%" }}>
+      <Typography sx={{ fontWeight: 800, fontSize: "0.9rem", letterSpacing: "0.3px", mb: 2.5, color: isDark ? "#e2e8f0" : "#1e293b" }}>
+        🕑 Recent Activity — {deptLabel}
+      </Typography>
+      {items.length === 0 ? (
+        <Box sx={{ textAlign: "center", py: 6 }}>
+          <Typography sx={{ fontSize: "2rem", mb: 1.5 }}>🌿</Typography>
+          <Typography sx={{ fontWeight: 700, color: isDark ? "#94a3b8" : "#64748b", mb: 0.5 }}>All quiet here</Typography>
+          <Typography sx={{ fontSize: "0.8rem", color: isDark ? "rgba(148,163,184,0.6)" : "rgba(100,116,139,0.7)" }}>
+            No recent activity for this department.
+          </Typography>
+        </Box>
+      ) : (
+        <Box sx={{ position: "relative" }}>
+          {/* Timeline line */}
+          <Box sx={{
+            position: "absolute", left: 15, top: 8, bottom: 8, width: 1.5,
+            background: isDark
+              ? "linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0.02))"
+              : "linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.02))",
+            borderRadius: 1,
+          }} />
+          <Stack spacing={1}>
+            {items.slice(0, 8).map((item, i) => (
+              <Box key={item.id || i} sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+                {/* Node */}
+                <Box sx={{
+                  width: 32, height: 32, borderRadius: "10px", flexShrink: 0,
+                  background: `${STATUS_COLOR_MAP[item.status] || "#64748b"}18`,
+                  border: `1.5px solid ${STATUS_COLOR_MAP[item.status] || "#64748b"}35`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "0.85rem", position: "relative", zIndex: 1,
+                }}>
+                  {statusIcon(item.status)}
+                </Box>
+                {/* Content */}
+                <Box sx={{
+                  flex: 1, p: 1.5, borderRadius: "12px",
+                  background: isDark ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.025)",
+                  border: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(15,23,42,0.06)",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    background: isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.04)",
+                  },
+                }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.25 }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: "0.82rem", color: isDark ? "#e2e8f0" : "#1e293b" }} noWrap>
+                      {item.visitor_name}
+                    </Typography>
+                    <Typography sx={{ fontSize: "0.65rem", color: isDark ? "rgba(148,163,184,0.6)" : "rgba(100,116,139,0.7)", flexShrink: 0, ml: 1 }}>
+                      {timeAgo(item.created_at)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 0.75, alignItems: "center", flexWrap: "wrap" }}>
+                    <Box sx={{
+                      px: 0.9, py: 0.2, borderRadius: "6px",
+                      background: `${STATUS_COLOR_MAP[item.status] || "#64748b"}18`,
+                      fontSize: "0.62rem", fontWeight: 700,
+                      color: STATUS_COLOR_MAP[item.status] || "#64748b",
+                      letterSpacing: "0.3px",
+                    }}>
+                      {statusLabel(item.status)}
+                    </Box>
+                    {item.visitor_purpose && (
+                      <Typography sx={{ fontSize: "0.68rem", color: isDark ? "rgba(148,163,184,0.6)" : "rgba(100,116,139,0.7)" }} noWrap>
+                        · {item.visitor_purpose}
+                      </Typography>
+                    )}
+                  </Box>
+                  {item.status === "rejected" && (item.rejection_reason || item.operations_comments) && (
+                    <Typography sx={{ fontSize: "0.68rem", color: "#ef4444", mt: 0.5, fontWeight: 500 }}>
+                      {item.rejection_reason || item.operations_comments}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      )}
+    </SpatialCard>
+  );
+}
+
+function SpatialStatusChart({ data, isDark }) {
+  const chartData = [
+    { name: "Pending", value: data.pending_dept_approval || 0, color: "#f59e0b" },
+    { name: "Approved", value: data.approved_by_dept || 0, color: "#10b981" },
+    { name: "Rejected", value: data.rejected_by_dept || 0, color: "#ef4444" },
+  ].filter(d => d.value > 0);
+
+  const total = chartData.reduce((s, d) => s + d.value, 0);
+
+  return (
+    <SpatialCard hover={false} sx={{ p: 3, height: "100%" }}>
+      <Typography sx={{ fontWeight: 800, fontSize: "0.9rem", letterSpacing: "0.3px", mb: 2.5, color: isDark ? "#e2e8f0" : "#1e293b" }}>
+        📊 Request Status
+      </Typography>
+      {total === 0 ? (
+        <Box sx={{ textAlign: "center", py: 4 }}>
+          <Typography sx={{ color: isDark ? "rgba(148,163,184,0.6)" : "rgba(100,116,139,0.7)", fontSize: "0.85rem" }}>
+            No data yet
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          {/* Donut via SVG + CSS */}
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%" cy="50%"
+                  innerRadius={50} outerRadius={78}
+                  paddingAngle={3} dataKey="value"
+                  animationDuration={800} stroke="none"
+                >
+                  {chartData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip
+                  formatter={(v) => `${v}`}
+                  contentStyle={{
+                    borderRadius: 10, border: "none",
+                    boxShadow: isDark ? "0 8px 24px rgba(0,0,0,0.45)" : "0 4px 12px rgba(0,0,0,0.15)",
+                    backgroundColor: isDark ? "#0f172a" : "#fff",
+                    color: isDark ? "#f1f5f9" : "#0f172a",
+                    fontSize: "0.8rem", fontWeight: 600,
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+          {/* Legend */}
+          <Stack spacing={1}>
+            {chartData.map(d => (
+              <Box key={d.name} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: "3px", background: d.color, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: "0.75rem", color: isDark ? "rgba(203,213,225,0.8)" : "rgba(71,85,105,0.9)" }}>
+                    {d.name}
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: d.color }}>
+                  {d.value} <Typography component="span" sx={{ fontSize: "0.65rem", fontWeight: 500, color: isDark ? "rgba(148,163,184,0.6)" : "rgba(100,116,139,0.6)" }}>
+                    ({Math.round((d.value / total) * 100)}%)
+                  </Typography>
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        </>
+      )}
+    </SpatialCard>
+  );
+}
+
+function SpatialQuickActions({ navigate, isDark }) {
+  const actions = [
+    { label: "New Visitor Request", desc: "Submit a new request", icon: "➕", color: "#0ea5e9", href: "/visitor-request" },
+    { label: "Approval Queue", desc: "Review pending requests", icon: "⏳", color: "#f59e0b", href: "/dept-approvals" },
+    { label: "Group Passes", desc: "Issue group visitor passes", icon: "👥", color: "#8b5cf6", href: "/group-passes" },
+  ];
+  return (
+    <SpatialCard hover={false} sx={{ p: 3 }}>
+      <Typography sx={{ fontWeight: 800, fontSize: "0.9rem", letterSpacing: "0.3px", mb: 2, color: isDark ? "#e2e8f0" : "#1e293b" }}>
+        ⚡ Quick Actions
+      </Typography>
+      <Stack spacing={1.5}>
+        {actions.map(a => (
+          <Box
+            key={a.label}
+            onClick={() => navigate(a.href)}
+            sx={{
+              display: "flex", alignItems: "center", gap: 2, px: 2, py: 1.5,
+              borderRadius: "13px", cursor: "pointer",
+              background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.03)",
+              border: isDark ? "1px solid rgba(255,255,255,0.07)" : `1px solid ${a.color}20`,
+              transition: "all 0.22s cubic-bezier(0.4,0,0.2,1)",
+              "&:hover": {
+                background: `${a.color}12`,
+                border: `1px solid ${a.color}35`,
+                transform: "translateX(4px)",
+                boxShadow: `0 4px 16px ${a.color}15`,
+              },
+              "@media (prefers-reduced-motion: reduce)": { transition: "none", "&:hover": { transform: "none" } },
+            }}
+          >
+            <Box sx={{
+              width: 36, height: 36, borderRadius: "10px",
+              background: `${a.color}18`, border: `1px solid ${a.color}30`,
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0,
+            }}>
+              {a.icon}
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: "0.82rem", color: isDark ? "#e2e8f0" : "#1e293b" }}>
+                {a.label}
+              </Typography>
+              <Typography sx={{ fontSize: "0.68rem", color: isDark ? "rgba(148,163,184,0.6)" : "rgba(100,116,139,0.7)" }}>
+                {a.desc}
+              </Typography>
+            </Box>
+            <Typography sx={{ ml: "auto", color: a.color, fontSize: "1rem", opacity: 0.6 }}>→</Typography>
+          </Box>
+        ))}
+      </Stack>
+    </SpatialCard>
+  );
+}
+
+function DeptManagerDashboard({ data, onRefresh, loading, actionFilters }) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const deptLabel = data.department_name || "Your Department";
 
   return (
-    <Stack spacing={4}>
-      <DashboardHeader
-        title={`${deptLabel} Dashboard`}
-        subtitle={`Department-specific requests and approval status for ${deptLabel}`}
-        onRefresh={onRefresh}
-        loading={loading}
-      />
+    <Box sx={{ position: "relative" }}>
+      {/* Background ambient blobs */}
+      <Box sx={{
+        position: "fixed", top: "10%", left: "5%", width: 400, height: 400,
+        borderRadius: "50%", background: "#0ea5e9",
+        opacity: isDark ? 0.025 : 0.018, filter: "blur(100px)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+      <Box sx={{
+        position: "fixed", bottom: "15%", right: "8%", width: 350, height: 350,
+        borderRadius: "50%", background: "#8b5cf6",
+        opacity: isDark ? 0.022 : 0.015, filter: "blur(90px)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+      <Box sx={{
+        position: "fixed", top: "50%", right: "25%", width: 250, height: 250,
+        borderRadius: "50%", background: "#10b981",
+        opacity: isDark ? 0.018 : 0.012, filter: "blur(80px)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
 
-      {data.department_id == null && (
-        <Alert severity="warning" sx={{ borderRadius: 2 }}>
-          Your account is not linked to a specific department. Showing all requests. Contact an administrator to link your account.
-        </Alert>
-      )}
+      <Stack spacing={3} sx={{ position: "relative", zIndex: 1 }}>
 
-      {/* KPI Row */}
-      <Grid container spacing={2.5}>
-        {[
-          { title: "Pending Your Approval", value: data.pending_dept_approval, color: "#f59e0b", icon: "⏳", subtitle: "Awaiting dept. review" },
-          { title: "Approved by Dept.", value: data.approved_by_dept, color: "#10b981", icon: "✅", subtitle: "Forwarded to Ops" },
-          { title: "Rejected by Dept.", value: data.rejected_by_dept, color: "#ef4444", icon: "❌", subtitle: "Declined" },
-          { title: "Requests Today", value: data.today_requests, color: "#0ea5e9", icon: "📅", subtitle: "Submitted today" },
-          { title: "Total All Time", value: data.total_requests_all_time, color: "#64748b", icon: "📋", subtitle: "All dept. requests" },
-        ].map((s) => (
-          <Grid item xs={12} sm={6} md={4} lg={2.4} key={s.title}>
-            <StatCard {...s} />
+        {/* ── No department warning ── */}
+        {data.department_id == null && (
+          <Alert severity="warning" sx={{ borderRadius: 2 }}>
+            Your account is not linked to a specific department. Showing all requests. Contact an administrator to link your account.
+          </Alert>
+        )}
+
+        {/* ── Hero ── */}
+        <SpatialHero
+          deptLabel={deptLabel}
+          pendingCount={data.pending_dept_approval || 0}
+          isDark={isDark}
+          onRefresh={onRefresh}
+          loading={loading}
+          actionFilters={actionFilters}
+        />
+
+        {/* ── KPI Cards ── */}
+        <Grid container spacing={2}>
+          {[
+            { title: "Pending Your Approval", value: data.pending_dept_approval, color: "#f59e0b", icon: "⏳", subtitle: "Awaiting dept. review", accentGlyph: "URGENT" },
+            { title: "Approved by Dept.", value: data.approved_by_dept, color: "#10b981", icon: "✅", subtitle: "Forwarded to Ops" },
+            { title: "Rejected by Dept.", value: data.rejected_by_dept, color: "#ef4444", icon: "❌", subtitle: "Declined" },
+            { title: "Requests Today", value: data.today_requests, color: "#0ea5e9", icon: "📅", subtitle: "Submitted today" },
+            { title: "Total All Time", value: data.total_requests_all_time, color: "#6366f1", icon: "📋", subtitle: "All dept. requests" },
+          ].map((s) => (
+            <Grid item xs={12} sm={6} md={4} lg={2.4} key={s.title}>
+              <SpatialKPI {...s} />
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* ── Department Pipeline ── */}
+        <SpatialPipeline data={data} isDark={isDark} />
+
+        {/* ── Main Content Row: Activity + Chart + Quick Actions ── */}
+        <Grid container spacing={2.5}>
+          <Grid item xs={12} md={5}>
+            <SpatialActivityTimeline
+              items={data.recent_requests || []}
+              deptLabel={deptLabel}
+              isDark={isDark}
+            />
           </Grid>
-        ))}
-      </Grid>
+          <Grid item xs={12} md={3.5}>
+            <SpatialStatusChart data={data} isDark={isDark} />
+          </Grid>
+          <Grid item xs={12} md={3.5}>
+            <SpatialQuickActions navigate={navigate} isDark={isDark} />
+          </Grid>
+        </Grid>
 
-      {/* Pipeline Bar */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ height: "100%", borderRadius: 2, border: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>Department Pipeline</Typography>
-              {[
-                { label: "Pending Approval", value: data.pending_dept_approval, color: "#f59e0b" },
-                { label: "Approved & Forwarded", value: data.approved_by_dept, color: "#10b981" },
-                { label: "Rejected", value: data.rejected_by_dept, color: "#ef4444" },
-              ].map(({ label, value, color }) => {
-                const total = Math.max(data.total_requests_all_time || 1, 1);
-                return (
-                  <Box key={label} sx={{ mb: 2 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-                      <Typography variant="caption" fontWeight={600}>{label}</Typography>
-                      <Typography variant="caption" fontWeight={800} sx={{ color }}>{value}</Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min(100, Math.round((value / total) * 100))}
-                      sx={{ height: 6, borderRadius: 3, bgcolor: `${color}20`,
-                        "& .MuiLinearProgress-bar": { bgcolor: color, borderRadius: 3 } }}
-                    />
-                  </Box>
-                );
-              })}
-              <Divider sx={{ my: 2 }} />
-              <Button
-                fullWidth variant="outlined"
-                onClick={() => navigate("/dept-approvals")}
-                sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2,
-                  color: "#f59e0b", borderColor: "#f59e0b40",
-                  "&:hover": { bgcolor: "#f59e0b10", borderColor: "#f59e0b" } }}
-              >
-                Open Approval Queue
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={8}>
-          <RecentActivityCard
-            title={`Recent Activity — ${deptLabel}`}
-            items={data.recent_requests || []}
-            icon="🕑"
-          />
-        </Grid>
-      </Grid>
-    </Stack>
+        {/* ── Approval Queue CTA ── */}
+        <SpatialCard hover={false} sx={{
+          p: { xs: 2.5, md: 3 },
+          display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2,
+          background: isDark
+            ? "linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(15,23,42,0.7) 100%)"
+            : "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(255,255,255,0.72) 100%)",
+          border: isDark ? "1px solid rgba(245,158,11,0.2)" : "1px solid rgba(245,158,11,0.25)",
+        }}>
+          <Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+              <Typography sx={{ fontSize: "1.1rem" }}>⏳</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: "1rem", color: isDark ? "#fbbf24" : "#b45309" }}>
+                Approval Queue
+              </Typography>
+              {data.pending_dept_approval > 0 && (
+                <Box sx={{
+                  px: 1, py: 0.2, borderRadius: "8px",
+                  background: "#f59e0b", color: "#fff",
+                  fontSize: "0.7rem", fontWeight: 800,
+                }}>
+                  {data.pending_dept_approval}
+                </Box>
+              )}
+            </Box>
+            <Typography sx={{ fontSize: "0.82rem", color: isDark ? "rgba(203,213,225,0.75)" : "rgba(71,85,105,0.9)" }}>
+              {data.pending_dept_approval > 0
+                ? `${data.pending_dept_approval} visitor request${data.pending_dept_approval > 1 ? "s are" : " is"} waiting for your department approval.`
+                : "You're all caught up — no visitor requests are waiting for your approval."}
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/dept-approvals")}
+            sx={{
+              background: "linear-gradient(135deg, #f59e0b, #d97706)",
+              color: "#fff", textTransform: "none", fontWeight: 700,
+              borderRadius: "12px", px: 3, py: 1.2, boxShadow: "0 4px 16px rgba(245,158,11,0.4)",
+              "&:hover": { background: "linear-gradient(135deg, #d97706, #b45309)", boxShadow: "0 8px 24px rgba(245,158,11,0.5)" },
+            }}
+          >
+            Go to Approval Queue →
+          </Button>
+        </SpatialCard>
+
+      </Stack>
+    </Box>
   );
 }
 
@@ -1339,6 +1854,7 @@ function DeptManagerDashboard({ data, onRefresh, loading }) {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const theme = useTheme();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1354,11 +1870,10 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = {};
-      if (user?.role === "admin") {
-        params.date_from = startDate;
-        params.date_to = endDate;
-      }
+      const params = {
+        date_from: startDate,
+        date_to: endDate
+      };
       const { data: responseData } = await api.get("/api/dashboard/summary", { params });
       setData(responseData);
     } catch (err) {
@@ -1417,20 +1932,39 @@ export default function DashboardPage() {
 
   const role = data.role || user?.role;
 
+  const actionFilters = (
+    <Box sx={{ 
+      display: 'flex', gap: 1, alignItems: 'center', 
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.3)', 
+      backdropFilter: 'blur(10px)',
+      px: 1.5, py: 0.5, borderRadius: 2, 
+      border: '1px solid', borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' 
+    }}>
+      <Typography variant="body2" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 0.5 }}>
+        📅
+      </Typography>
+      <TextField
+        type="date" value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        size="small"
+        sx={{ width: 125, '& .MuiOutlinedInput-root': { height: 30, fontSize: '0.8rem', '& fieldset': { border: 'none' } }, '& input': { color: 'inherit' } }}
+      />
+      <Typography sx={{ opacity: 0.5, fontWeight: 600 }}>-</Typography>
+      <TextField
+        type="date" value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        size="small"
+        sx={{ width: 125, '& .MuiOutlinedInput-root': { height: 30, fontSize: '0.8rem', '& fieldset': { border: 'none' } }, '& input': { color: 'inherit' } }}
+      />
+    </Box>
+  );
+
   // ── Dispatch to role-specific view ──
-  const commonProps = { data, onRefresh: fetchData, loading };
+  const commonProps = { data, onRefresh: fetchData, loading, actionFilters };
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }} className="page-enter">
-      {role === "admin" && (
-        <AdminDashboard
-          {...commonProps}
-          startDate={startDate}
-          setStartDate={setStartDate}
-          endDate={endDate}
-          setEndDate={setEndDate}
-        />
-      )}
+      {role === "admin" && <AdminDashboard {...commonProps} />}
       {role === "pass_officer" && <PassOfficerDashboard {...commonProps} />}
       {role === "operations_officer" && <OpsOfficerDashboard {...commonProps} />}
       {role === "security_gate_officer" && <GateOfficerDashboard {...commonProps} />}

@@ -79,9 +79,12 @@ const AuditLogsPage = () => {
       title: 'Action',
       dataIndex: 'action_type',
       key: 'action_type',
-      width: 110,
+      width: 150,
       render: action => (
-        <Tag color={ACTION_COLORS[action] || 'default'}>
+        <Tag 
+          color={ACTION_COLORS[action] || 'default'}
+          style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', verticalAlign: 'middle' }}
+        >
           {action || 'UNKNOWN'}
         </Tag>
       ),
@@ -90,8 +93,11 @@ const AuditLogsPage = () => {
       title: 'Entity Type',
       dataIndex: 'entity_type',
       key: 'entity_type',
-      width: 140,
-      render: val => val || <Text type="secondary">—</Text>,
+      width: 180,
+      ellipsis: true,
+      render: val => val 
+        ? <Text style={{ maxWidth: '100%' }} ellipsis={{ tooltip: val }}>{val}</Text> 
+        : <Text type="secondary">—</Text>,
     },
     {
       title: 'Entity ID',
@@ -214,7 +220,7 @@ const AuditLogsPage = () => {
         dataSource={logs}
         loading={loading}
         rowKey="id"
-        scroll={{ x: 850 }}
+        scroll={{ x: 1000 }}
         size="middle"
         locale={{
           emptyText: error

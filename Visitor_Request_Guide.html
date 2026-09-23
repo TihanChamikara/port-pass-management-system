@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Request Portal - User Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        h1 {
+            color: #1a3c6e;
+            border-bottom: 2px solid #0ea5e9;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0ea5e9;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #1a3c6e;
+        }
+        .step {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .note {
+            background: #fffbe6;
+            border-left: 4px solid #faad14;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        strong {
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+    <h1>Port Pass Pro - Visitor Request Guide</h1>
+    <p>This document provides step-by-step instructions for submitting and tracking a visitor request using the internal portal at <strong>http://localhost:5173/visitor-request</strong>.</p>
+    
+    <h2>Submitting a New Request</h2>
+    <p>By default, you will land on the <strong>New Request</strong> tab, which consists of a 3-step process:</p>
+
+    <div class="step">
+        <h3>Step 1: Requester (Your Information)</h3>
+        <p>This section is for the details of the person <em>submitting</em> the request (the internal employee).</p>
+        <ul>
+            <li><strong>Your Name:</strong> Enter your full name <em>(Required)</em>.</li>
+            <li><strong>Email Address:</strong> Enter your company email address <em>(Required)</em>. You will need this later to track the request.</li>
+            <li><strong>Phone Number:</strong> Enter your contact number <em>(Optional)</em>.</li>
+        </ul>
+        <p>Click <strong>Next Step</strong> to proceed.</p>
+    </div>
+
+    <div class="step">
+        <h3>Step 2: Visitor Details</h3>
+        <p>This section is for the details of the <em>guest</em> who will be visiting the port.</p>
+        <ul>
+            <li><strong>Visitor Name:</strong> Enter the guest's full name <em>(Required)</em>.</li>
+            <li><strong>NIC / Passport:</strong> Enter their national ID card or passport number. They will need to present this at the gate <em>(Required)</em>.</li>
+            <li><strong>Visitor Phone:</strong> The guest's contact number <em>(Optional)</em>.</li>
+            <li><strong>Company / Organization:</strong> The company the guest is representing <em>(Optional)</em>.</li>
+        </ul>
+        <p>Click <strong>Next Step</strong> to proceed.</p>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Visit Info</h3>
+        <p>This section specifies the logistics and routing of the visit.</p>
+        <ul>
+            <li><strong>Purpose of Visit:</strong> Briefly describe why they are visiting (e.g., "Maintenance", "Sales Meeting") <em>(Required)</em>.</li>
+            <li><strong>Department to Visit:</strong> Select the internal department the visitor is going to from the dropdown menu <em>(Required)</em>. This request will automatically route to that department's manager for approval.</li>
+            <li><strong>Date &amp; Time:</strong> Select the expected Entry and Exit dates/times. <em>Note: You can only schedule visits up to 30 days in advance (Required).</em></li>
+            <li><strong>Zones to Access:</strong> Select one or more areas the visitor needs access to (e.g., Zone 1 Office, Zone 2 Warehouse) <em>(Required)</em>.</li>
+            <li><strong>Vehicle Number:</strong> If the visitor is bringing a car, enter the license plate number <em>(Optional)</em>.</li>
+        </ul>
+        <p>Click <strong>Submit Request</strong> to finalize.</p>
+    </div>
+
+    <h2>Tracking Your Request</h2>
+    <p>Once submitted, you will be given a <strong>Request ID</strong>. To check if the pass has been approved:</p>
+    <ol>
+        <li>Go to the <strong>Track Request</strong> tab at the top of the page.</li>
+        <li>Enter your <strong>Request ID</strong>.</li>
+        <li>Enter the <strong>Email Address</strong> you used in Step 1.</li>
+        <li>Click <strong>Track Status</strong>.</li>
+    </ol>
+    <p>The system will show if the request is <em>Pending Department Approval</em>, <em>Awaiting Security Verification</em>, <em>Issued</em>, or <em>Rejected</em>.</p>
+
+    <div class="note">
+        <strong>Note on Group Passes:</strong> The third tab, "Group Pass Issue", is restricted. It can only be accessed by authorized Department Managers or Administrators who have signed into the system.
+    </div>
+</body>
+</html>

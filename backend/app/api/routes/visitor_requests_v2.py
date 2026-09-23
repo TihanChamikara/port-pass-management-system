@@ -122,6 +122,10 @@ async def submit_visitor_request(
             "department_name": payload.department_name,
             "additional_notes": payload.additional_notes,
             "supporting_docs_urls": payload.supporting_docs_urls,
+            "visitor_category": payload.visitor_category,
+            "visitors": payload.visitors,
+            "vehicles": payload.vehicles,
+            "request_source": payload.request_source,
         }
 
         success, visitor_req, error_msg = WorkflowService.submit_visitor_request(
@@ -463,11 +467,12 @@ async def approve_request(
         if not success:
             raise HTTPException(status_code=400, detail=error_msg)
     
-    # Step 3: Transition to APPROVED
+    # Step 3: Transition to APPROVED (or directly to ISSUED if VIP)
+    final_target = RequestState.ISSUED if visitor_req.visitor_type == "vip" else RequestState.APPROVED
     success, error_msg = WorkflowService.transition_state(
         db=db,
         request=visitor_req,
-        target_state=RequestState.APPROVED,
+        target_state=final_target,
         actor=current_user,
         reason=payload.comments,
     )
@@ -480,12 +485,44 @@ async def approve_request(
         visitor_req.requested_zones = json.dumps(payload.zones_override)
         db.commit()
 
+    if final_target == RequestState.ISSUED:
+        # Auto-create PassRecord for VIP so they appear in Pass Management and are ready for gate
+        from app.models.pass_record import PassRecord, PassType, Zone
+        from app.services.pass_service import generate_pass_number
+        import json
+        
+        zone = None
+        if visitor_req.requested_zones:
+            try:
+                zones = json.loads(visitor_req.requested_zones)
+                if zones and zones[0] in [z.value for z in Zone]:
+                    zone = Zone(zones[0])
+            except:
+                pass
+                
+        pass_record = PassRecord(
+            pass_no=generate_pass_number(),
+            visitor_name=visitor_req.visitor_name,
+            company_name=visitor_req.visitor_organization or "VIP Guest",
+            nic_number=visitor_req.visitor_nic or "N/A",
+            contact_number=visitor_req.visitor_phone or "N/A",
+            pass_type=PassType.purple,  # Usually VIP gets purple/all zones
+            zone=zone,
+            allowed_zones=[1, 2, 3, 4],
+            created_by=current_user.id
+        )
+        db.add(pass_record)
+        db.flush()
+        
+        visitor_req.pass_record_id = pass_record.id
+        db.commit()
+
     return WorkflowTransitionResponse(
         success=True,
         previous_state=current_state.value,
         current_state=visitor_req.status.value,
         timestamp=datetime.utcnow(),
-        message="Request approved and ready for pass generation"
+        message="Request approved. Pass automatically issued for VIP." if visitor_req.visitor_type == "vip" else "Request approved and ready for pass generation"
     )
 
 
@@ -578,11 +615,11 @@ async def issue_pass(
     db: Session = Depends(get_db),
 ):
     """
-    Pass Officer: Issue pass.
+    Pass Officer / Ops Officer: Issue pass.
     Transitions APPROVED → ISSUED
     """
-    if current_user.role not in ["admin", "pass_officer"]:
-        raise HTTPException(status_code=403, detail="Only pass officers can issue passes")
+    if current_user.role not in ["admin", "pass_officer", "operations_officer"]:
+        raise HTTPException(status_code=403, detail="Not authorized to issue passes")
 
     visitor_req = db.query(VisitorRequest).filter(VisitorRequest.id == request_id).first()
     if not visitor_req:
@@ -618,7 +655,7 @@ async def issue_pass(
     "/for-pass-generation",
     response_model=RequestListResponse,
     summary="List requests ready for pass generation",
-    description="Pass officer endpoint for approved requests ready to generate passes",
+    description="Endpoint for approved requests ready to generate passes (filtered by role)",
 )
 async def get_requests_for_pass_generation(
     page: int = Query(default=1, ge=1),
@@ -626,10 +663,14 @@ async def get_requests_for_pass_generation(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.role not in ["admin", "pass_officer"]:
-        raise HTTPException(status_code=403, detail="Only pass officers can view requests ready for pass generation")
+    if current_user.role not in ["admin", "pass_officer", "operations_officer"]:
+        raise HTTPException(status_code=403, detail="Not authorized to view requests ready for pass generation")
 
     query = db.query(VisitorRequest).filter(VisitorRequest.status == RequestStatus.approved)
+    
+    # Pass officers manage normal passes, Operations officers can see all
+    if current_user.role == "pass_officer":
+        query = query.filter(VisitorRequest.visitor_type != "vip")
     total = query.count()
     items = query.order_by(VisitorRequest.created_at.asc()).offset((page - 1) * page_size).limit(page_size).all()
 
@@ -653,8 +694,8 @@ async def mark_pass_issued_compat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.role not in ["admin", "pass_officer"]:
-        raise HTTPException(status_code=403, detail="Only pass officers can issue passes")
+    if current_user.role not in ["admin", "pass_officer", "operations_officer"]:
+        raise HTTPException(status_code=403, detail="Not authorized to issue passes")
 
     visitor_req = db.query(VisitorRequest).filter(VisitorRequest.id == request_id).first()
     if not visitor_req:

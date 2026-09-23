@@ -84,13 +84,13 @@ def summary(
     if role == UserRole.admin:
         return _admin_dashboard(db, date_from, date_to)
     elif role == UserRole.pass_officer:
-        return _pass_officer_dashboard(db)
+        return _pass_officer_dashboard(db, date_from, date_to)
     elif role == UserRole.operations_officer:
-        return _ops_officer_dashboard(db)
+        return _ops_officer_dashboard(db, date_from, date_to)
     elif role == UserRole.security_gate_officer:
-        return _gate_officer_dashboard(db)
+        return _gate_officer_dashboard(db, date_from, date_to)
     elif role == UserRole.department_manager:
-        return _dept_manager_dashboard(db, current_user)
+        return _dept_manager_dashboard(db, current_user, date_from, date_to)
     else:
         # Fallback: empty shell
         return {"role": role.value if hasattr(role, 'value') else str(role), "message": "No dashboard data for this role."}
@@ -116,17 +116,17 @@ def _admin_dashboard(db: Session, date_from: str | None, date_to: str | None) ->
         and_(PassRecord.issued_time >= start, PassRecord.issued_time <= end)
     )
     today_total = filtered_passes.count()
-    active_total = filtered_passes.filter(PassRecord.status == PassStatus.active).count()
+    active_total = db.query(PassRecord).filter(PassRecord.status == PassStatus.active).count()
     completed_total = filtered_passes.filter(PassRecord.status == PassStatus.completed).count()
 
     # Request statistics (all time)
     all_requests = db.query(VisitorRequest)
     total_requests = all_requests.count()
     pending_requests = all_requests.filter(
-        VisitorRequest.status.in_([RequestStatus.pending_approval, RequestStatus.pending_department_approval])
+        VisitorRequest.status.in_([RequestStatus.pending_approval, RequestStatus.pending_department_approval, RequestStatus.under_review])
     ).count()
     approved_requests = all_requests.filter(
-        VisitorRequest.status.in_([RequestStatus.approved, RequestStatus.issued])
+        VisitorRequest.status == RequestStatus.approved
     ).count()
     rejected_requests = all_requests.filter(VisitorRequest.status == RequestStatus.rejected).count()
     issued_requests = all_requests.filter(VisitorRequest.status == RequestStatus.issued).count()
@@ -183,8 +183,16 @@ def _admin_dashboard(db: Session, date_from: str | None, date_to: str | None) ->
 # Pass Officer dashboard
 # ---------------------------------------------------------------------------
 
-def _pass_officer_dashboard(db: Session) -> PassOfficerDashboardResponse:
-    today_start, today_end = _today_utc()
+def _parse_dates(date_from: str | None, date_to: str | None):
+    now = datetime.now(timezone.utc)
+    start_date = date.fromisoformat(date_from) if date_from else now.date()
+    end_date = date.fromisoformat(date_to) if date_to else start_date
+    if end_date < start_date:
+        start_date, end_date = end_date, start_date
+    return datetime.combine(start_date, time.min, tzinfo=timezone.utc), datetime.combine(end_date, time.max, tzinfo=timezone.utc)
+
+def _pass_officer_dashboard(db: Session, date_from: str | None, date_to: str | None) -> PassOfficerDashboardResponse:
+    today_start, today_end = _parse_dates(date_from, date_to)
 
     approved_awaiting = db.query(VisitorRequest).filter(
         VisitorRequest.status == RequestStatus.approved
@@ -237,8 +245,8 @@ def _pass_officer_dashboard(db: Session) -> PassOfficerDashboardResponse:
 # Operations Officer dashboard
 # ---------------------------------------------------------------------------
 
-def _ops_officer_dashboard(db: Session) -> OpsOfficerDashboardResponse:
-    today_start, today_end = _today_utc()
+def _ops_officer_dashboard(db: Session, date_from: str | None, date_to: str | None) -> OpsOfficerDashboardResponse:
+    today_start, today_end = _parse_dates(date_from, date_to)
 
     pending_ops = db.query(VisitorRequest).filter(
         VisitorRequest.status == RequestStatus.pending_approval
@@ -249,14 +257,17 @@ def _ops_officer_dashboard(db: Session) -> OpsOfficerDashboardResponse:
     ).count()
 
     dept_pending = db.query(VisitorRequest).filter(
-        VisitorRequest.status.in_([RequestStatus.pending_approval, RequestStatus.under_review]),
-        VisitorRequest.department_id.isnot(None),
-        VisitorRequest.dept_reviewed_at == None
+        VisitorRequest.status == RequestStatus.pending_department_approval
     ).count()
 
     approved_today = db.query(VisitorRequest).filter(
         and_(
-            VisitorRequest.status.in_([RequestStatus.approved, RequestStatus.issued]),
+            VisitorRequest.status.in_([
+                RequestStatus.approved, 
+                RequestStatus.issued, 
+                RequestStatus.checked_in, 
+                RequestStatus.checked_out
+            ]),
             VisitorRequest.operations_reviewed_at >= today_start,
             VisitorRequest.operations_reviewed_at <= today_end,
         )
@@ -315,12 +326,12 @@ def _ops_officer_dashboard(db: Session) -> OpsOfficerDashboardResponse:
 # Gate Officer dashboard
 # ---------------------------------------------------------------------------
 
-def _gate_officer_dashboard(db: Session) -> GateOfficerDashboardResponse:
-    today_start, today_end = _today_utc()
+def _gate_officer_dashboard(db: Session, date_from: str | None, date_to: str | None) -> GateOfficerDashboardResponse:
+    today_start, today_end = _parse_dates(date_from, date_to)
 
     expected_today = db.query(VisitorRequest).filter(
         and_(
-            VisitorRequest.status.in_([RequestStatus.approved, RequestStatus.issued]),
+            VisitorRequest.status.in_([RequestStatus.approved, RequestStatus.issued, RequestStatus.checked_in, RequestStatus.checked_out]),
             VisitorRequest.requested_date >= today_start,
             VisitorRequest.requested_date <= today_end,
         )
@@ -373,10 +384,9 @@ def _gate_officer_dashboard(db: Session) -> GateOfficerDashboardResponse:
         .filter(
             and_(
                 VisitorRequest.visitor_type == "vip",
+                VisitorRequest.requested_date >= today_start,
+                VisitorRequest.requested_date <= today_end,
                 VisitorRequest.status.in_([
-                    RequestStatus.pending_department_approval,
-                    RequestStatus.pending_approval,
-                    RequestStatus.under_review,
                     RequestStatus.approved,
                     RequestStatus.issued,
                     RequestStatus.checked_in
@@ -419,8 +429,8 @@ def _gate_officer_dashboard(db: Session) -> GateOfficerDashboardResponse:
 # Department Manager dashboard
 # ---------------------------------------------------------------------------
 
-def _dept_manager_dashboard(db: Session, current_user: User) -> DeptManagerDashboardResponse:
-    today_start, today_end = _today_utc()
+def _dept_manager_dashboard(db: Session, current_user: User, date_from: str | None, date_to: str | None) -> DeptManagerDashboardResponse:
+    today_start, today_end = _parse_dates(date_from, date_to)
     dept_id = current_user.department_id
 
     base_q = db.query(VisitorRequest)
@@ -428,7 +438,7 @@ def _dept_manager_dashboard(db: Session, current_user: User) -> DeptManagerDashb
         base_q = base_q.filter(VisitorRequest.department_id == dept_id)
 
     pending_dept = base_q.filter(
-        VisitorRequest.status.in_([RequestStatus.pending_approval, RequestStatus.under_review]),
+        VisitorRequest.status.in_([RequestStatus.pending_approval, RequestStatus.pending_department_approval, RequestStatus.under_review]),
         VisitorRequest.dept_reviewed_at == None
     ).count()
 

@@ -232,6 +232,13 @@ const OpsApprovalPage = () => {
       ellipsis: true,
     },
     {
+      title: 'Requester',
+      dataIndex: 'requester_name',
+      key: 'requester_name',
+      width: 160,
+      ellipsis: true,
+    },
+    {
       title: 'Department',
       dataIndex: 'department_name',
       key: 'department_name',
@@ -647,14 +654,19 @@ const OpsApprovalPage = () => {
                 gap: '10px 24px',
               }}>
                 {[
-                  { label: 'Requester Name', value: selectedRequest.requester_name },
-                  { label: 'Requester Email', value: selectedRequest.requester_email },
-                  { label: 'Visitor Name', value: <Text strong>{selectedRequest.visitor_name}</Text> },
+                  { label: 'Requester Name', value: selectedRequest.requester_name || '—' },
+                  { label: 'Visitor Category', value: selectedRequest.visitor_category || '—' },
+                  { label: 'Visitor Name', value: <Text strong>{selectedRequest.visitor_name || '—'}</Text> },
                   { label: 'NIC / Passport', value: <Text code>{selectedRequest.visitor_nic || '—'}</Text> },
                   { label: 'Organization', value: selectedRequest.visitor_organization || '—' },
                   { label: 'Department', value: selectedRequest.department_name
                     ? <Tag color="blue">{selectedRequest.department_name}</Tag>
                     : <Text type="secondary">—</Text> },
+                  { label: 'Request Source', value: selectedRequest.request_source === 'internal'
+                    ? <Tag color="cyan">Internal</Tag>
+                    : selectedRequest.request_source === 'external'
+                    ? <Tag color="orange">External</Tag>
+                    : <Tag>{selectedRequest.request_source || '—'}</Tag> },
                 ].map(({ label, value }) => (
                   <div key={label} style={{
                     background: '#f8fafc',

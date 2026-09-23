@@ -738,6 +738,11 @@ export default function PassIssuingPage() {
                   </Typography>
                   <Stack spacing={2.5}>
                     <Box>
+                      <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>Requester Name</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedRequest.requester_name || 'N/A'}</Typography>
+                    </Box>
+
+                    <Box>
                       <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>Host Employee</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedRequest.host_employee_name || 'N/A'}</Typography>
                     </Box>

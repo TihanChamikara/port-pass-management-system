@@ -114,6 +114,14 @@ const DeptManagerPage = () => {
       ),
     },
     {
+      title: 'Requester',
+      dataIndex: 'requester_name',
+      key: 'requester_name',
+      width: 160,
+      ellipsis: true,
+      render: (name) => <Text>{name}</Text>,
+    },
+    {
       title: 'Organization',
       dataIndex: 'visitor_organization',
       key: 'visitor_organization',
@@ -253,9 +261,9 @@ const DeptManagerPage = () => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 24px' }}>
                 {[
-                  { label: 'Requester Name', value: selectedRequest.requester_name },
-                  { label: 'Requester Email', value: selectedRequest.requester_email },
-                  { label: 'Visitor Name', value: <Text strong>{selectedRequest.visitor_name}</Text> },
+                  { label: 'Requester Name', value: selectedRequest.requester_name || '—' },
+                  { label: 'Visitor Category', value: selectedRequest.visitor_category || '—' },
+                  { label: 'Visitor Name', value: <Text strong>{selectedRequest.visitor_name || '—'}</Text> },
                   { label: 'NIC / Passport', value: <Text code>{selectedRequest.visitor_nic || '—'}</Text> },
                   { label: 'Organization', value: selectedRequest.visitor_organization || '—' },
                   { label: 'Contact Phone', value: selectedRequest.visitor_phone || '—' },

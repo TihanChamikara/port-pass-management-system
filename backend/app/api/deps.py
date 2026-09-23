@@ -41,6 +41,11 @@ def require_admin_or_staff() -> callable:
     return require_roles([UserRole.admin, UserRole.operations_officer, UserRole.pass_officer])
 
 
+def require_group_pass_issuer() -> callable:
+    """Authorized to issue group passes: Department Managers & Admins."""
+    return require_roles([UserRole.admin, UserRole.department_manager])
+
+
 def require_admin_or_security() -> callable:
     return require_roles([UserRole.admin, UserRole.security_gate_officer])
 

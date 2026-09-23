@@ -15,7 +15,8 @@ import {
   BulbFilled,
   BellOutlined,
   FileProtectOutlined,
-  SecurityScanOutlined
+  SecurityScanOutlined,
+  HeartOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../features/authStore';
@@ -34,15 +35,15 @@ const NAV_GROUPS = [
     items: [
       { key: '/dept-approvals', icon: <ApartmentOutlined />, label: 'Dept. Approvals', roles: ['admin', 'department_manager'] },
       { key: '/approve-requests', icon: <CheckCircleOutlined />, label: 'Approve Requests', roles: ['admin', 'operations_officer'] },
-      { key: '/issue-passes', icon: <IdcardOutlined />, label: 'Issue Passes', roles: ['admin', 'pass_officer'] },
-      { key: '/passes', icon: <FileProtectOutlined />, label: 'Pass Management', roles: ['admin', 'pass_officer'] },
+      { key: '/issue-passes', icon: <IdcardOutlined />, label: 'Issue Passes', roles: ['admin', 'pass_officer', 'operations_officer'] },
+      { key: '/passes', icon: <FileProtectOutlined />, label: 'Pass Management', roles: ['admin', 'pass_officer', 'operations_officer'] },
     ]
   },
   {
     label: 'SECURITY',
     items: [
       { key: '/gate-control', icon: <SafetyCertificateOutlined />, label: 'Gate Control', roles: ['admin', 'security_gate_officer'] },
-      { key: '/group-passes', icon: <TeamOutlined />, label: 'Group Passes', roles: ['admin', 'pass_officer'] },
+      { key: '/group-passes', icon: <TeamOutlined />, label: 'Group Passes', roles: ['admin', 'department_manager'] },
     ]
   },
   {
@@ -55,6 +56,7 @@ const NAV_GROUPS = [
     label: 'ADMINISTRATION',
     items: [
       { key: '/audit-logs', icon: <AuditOutlined />, label: 'Audit Trail', roles: ['admin'] },
+      { key: '/system-health', icon: <HeartOutlined />, label: 'System Health', roles: ['admin'] },
     ]
   },
 ];
@@ -69,6 +71,7 @@ const PAGE_LABELS = {
   '/group-passes': 'Group Passes',
   '/reports': 'Analytics',
   '/audit-logs': 'Audit Trail',
+  '/system-health': 'System Health',
 };
 
 const ROLE_CONFIG = {

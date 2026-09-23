@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -9,6 +10,28 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 480
     database_url: str = "postgresql+psycopg2://postgres:admin123@127.0.0.1:5432/port_pass_db"
     cors_origins: str = "*"
+
+    # ── HA / DR Settings ──────────────────────────────────────────────
+    server_role: str = "primary"  # "primary" or "standby"
+    standby_host: Optional[str] = None
+    primary_host: Optional[str] = None
+
+    # Backup settings
+    backup_dir: str = "backups"  # default local path; override for NAS/remote
+    backup_retention_daily: int = 14
+    backup_retention_weekly: int = 8
+    backup_retention_monthly: int = 6
+    backup_db_host: str = "127.0.0.1"
+    backup_db_port: int = 5432
+    backup_db_name: str = "port_pass_db"
+    backup_db_user: str = "postgres"
+    backup_db_password: str = "admin123"
+
+    # Health monitoring
+    disk_warning_threshold: int = 80  # percentage
+    disk_critical_threshold: int = 90  # percentage
+    replication_lag_warning: int = 30  # seconds
+    replication_lag_critical: int = 120  # seconds
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

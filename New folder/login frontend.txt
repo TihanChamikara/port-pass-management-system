@@ -1,0 +1,523 @@
+Redesign my existing React + Vite Login Page using a premium **Spatial UI / Spatial Computing inspired design**.
+
+IMPORTANT:
+
+This is an existing working login page.
+
+Do NOT change the authentication logic.
+
+Do NOT change:
+
+* Login API
+* Authentication store
+* Username/password handling
+* Validation
+* Loading state
+* Success/error messages
+* Navigation after login
+* Visitor request link
+* Existing routes
+
+Only redesign the frontend UI/UX.
+
+The existing LoginPage.jsx currently uses:
+
+* React
+* Ant Design Form
+* Ant Design Input
+* Ant Design Button
+* UserOutlined icon
+* LockOutlined icon
+* React Router navigation
+* useAuthStore authentication
+
+Preserve these existing integrations.
+
+==================================================
+DESIGN CONCEPT
+==============
+
+Create a premium **Spatial UI login experience**.
+
+The page should feel like a modern enterprise application interface floating inside a sophisticated digital environment.
+
+The design should communicate:
+
+Professional
+Secure
+Premium
+Modern
+Minimal
+Elegant
+Spatial
+Futuristic
+
+Do NOT make it look like:
+
+* Gaming UI
+* Cyberpunk
+* Neon sci-fi
+* Cryptocurrency dashboard
+* Excessive glassmorphism
+* A generic template
+
+Use spatial computing principles rather than simply putting glass effects everywhere.
+
+==================================================
+FULL-SCREEN SPATIAL ENVIRONMENT
+===============================
+
+Create a full-screen background environment.
+
+Use:
+
+* Soft gradient background
+* Multiple subtle depth layers
+* Ambient blurred light
+* Very subtle geometric forms
+* Floating translucent shapes
+* Low-opacity grid/depth patterns
+* Soft atmospheric lighting
+
+The background should have a sense of depth.
+
+The user should feel that the login interface is floating inside a digital environment.
+
+Keep all background elements subtle.
+
+==================================================
+SPATIAL LOGIN CARD
+==================
+
+Transform the existing login card into a floating spatial surface.
+
+Instead of a simple flat white card, create a layered material.
+
+Use:
+
+* Semi-transparent surface
+* Backdrop blur
+* Soft border
+* Large rounded corners
+* Multiple subtle shadows
+* Slight inner highlight
+* Depth separation from background
+
+The card should appear to physically float above the background.
+
+Recommended:
+
+border-radius: 24–32px
+
+Do not overdo transparency.
+
+Text and form controls must remain highly readable.
+
+==================================================
+SPATIAL LOGO
+============
+
+Keep the existing logo concept/functionality but redesign its presentation.
+
+Place the logo inside a small floating spatial container.
+
+Possible effect:
+
+* Soft ambient glow
+* Circular translucent layer
+* Subtle depth ring
+* Gentle animation
+
+Do not make the logo excessively bright.
+
+The logo should look premium and professional.
+
+==================================================
+BRANDING
+========
+
+Keep the existing application branding.
+
+Display:
+
+"Port Pass Pro"
+
+Below it:
+
+"Sign in to continue"
+
+Improve the typography and spacing.
+
+The application name should be visually strong but elegant.
+
+Use a modern enterprise typography hierarchy.
+
+==================================================
+LOGIN FORM
+==========
+
+Keep the existing username and password fields.
+
+Username:
+
+* User icon
+* Username placeholder
+* Rounded spatial input
+* Translucent/soft surface
+* Clear focus state
+
+Password:
+
+* Lock icon
+* Password placeholder
+* Password visibility control
+* Same spatial input treatment
+
+Inputs should feel like floating controls inside the login surface.
+
+==================================================
+INPUT INTERACTIONS
+==================
+
+When the user focuses an input:
+
+* Slight elevation
+* Subtle border highlight
+* Soft ambient glow
+* Smooth transition
+
+When unfocused:
+
+Return smoothly to normal state.
+
+Do not use excessive neon effects.
+
+==================================================
+SIGN IN BUTTON
+==============
+
+Transform the existing Sign In button into a premium spatial action.
+
+The button should:
+
+* Have clear visual hierarchy
+* Have subtle depth
+* Have rounded corners
+* Have a soft shadow
+* Feel slightly elevated
+
+Hover:
+
+* Slight upward movement
+* Slightly stronger shadow
+
+Pressed:
+
+* Slight downward movement
+
+Loading:
+
+Preserve the existing Ant Design loading state.
+
+Do not change the login logic.
+
+==================================================
+VISITOR REQUEST LINK
+====================
+
+Keep the existing:
+
+"Submit an internal visitor request"
+
+link.
+
+Present it as a secondary spatial action beneath the login form.
+
+It should be clearly visible but less prominent than Sign In.
+
+Add a subtle hover transition.
+
+Do not change its route.
+
+==================================================
+SPATIAL DEPTH COMPOSITION
+=========================
+
+Create multiple visual layers.
+
+Layer 1:
+Background atmosphere
+
+Layer 2:
+Ambient geometric elements
+
+Layer 3:
+Floating login surface
+
+Layer 4:
+Logo/branding
+
+Layer 5:
+Form controls
+
+Layer 6:
+Primary Sign In action
+
+The login form should visually appear closer to the user than the background.
+
+==================================================
+SUBTLE 3D EFFECT
+================
+
+Add very subtle perspective/depth.
+
+For example:
+
+* Login card can slightly respond to mouse movement
+* Background objects can have extremely subtle parallax
+* Card can gently shift a few pixels based on pointer position
+
+IMPORTANT:
+
+Keep this extremely subtle.
+
+Do NOT make the login card rotate dramatically.
+
+The page should remain professional.
+
+If this interaction creates performance problems, remove it.
+
+==================================================
+ANIMATION
+=========
+
+On page load:
+
+1. Background fades in
+2. Ambient layers appear
+3. Login card gently rises
+4. Logo appears
+5. Form content fades in
+
+Use smooth animations.
+
+Recommended duration:
+
+200–500ms.
+
+Do not make the login page slow.
+
+Respect:
+
+prefers-reduced-motion
+
+When reduced motion is enabled, disable unnecessary movement.
+
+==================================================
+LIGHT MODE
+==========
+
+Create a premium light spatial environment.
+
+Use:
+
+* Soft neutral background
+* White/translucent login surface
+* Subtle shadows
+* Soft ambient lighting
+* Controlled blue/primary accent
+
+Avoid pure white everywhere.
+
+==================================================
+DARK MODE
+=========
+
+Create a premium dark spatial environment.
+
+Use:
+
+* Deep neutral background
+* Translucent dark login surface
+* Soft highlights
+* Subtle ambient lighting
+* Controlled accent color
+
+Avoid pure black.
+
+The login card should feel illuminated by soft ambient light.
+
+==================================================
+RESPONSIVE DESIGN
+=================
+
+The login page must work perfectly on:
+
+* 1920×1080
+* 1600×900
+* 1366×768
+* Laptop
+* Tablet
+* Mobile
+
+Desktop:
+
+Centered spatial login experience with generous background space.
+
+Tablet:
+
+Reduce card width and background effects.
+
+Mobile:
+
+Login card should fit comfortably with appropriate padding.
+
+Do not cause horizontal scrolling.
+
+==================================================
+ACCESSIBILITY
+=============
+
+Preserve:
+
+* Keyboard navigation
+* Form validation
+* Visible focus states
+* Accessible labels
+* Good text contrast
+* Appropriate touch targets
+
+Spatial effects must never reduce accessibility.
+
+==================================================
+PERFORMANCE
+===========
+
+Keep the page lightweight.
+
+Do not add unnecessarily heavy 3D libraries.
+
+Prefer:
+
+* CSS
+* CSS gradients
+* CSS blur
+* CSS transforms
+* Existing React components
+
+Only introduce a library if it provides meaningful value.
+
+The login page must load quickly.
+
+==================================================
+EXISTING FUNCTIONALITY
+======================
+
+The current login behavior must remain exactly the same.
+
+The existing flow is:
+
+User enters username
+↓
+User enters password
+↓
+Submit
+↓
+useAuthStore.login()
+↓
+Success
+↓
+Navigate to /dashboard
+
+Preserve this behavior.
+
+Keep the existing:
+
+loading state
+
+success message
+
+error message
+
+validation
+
+visitor-request navigation
+
+==================================================
+CODE QUALITY
+============
+
+Keep LoginPage.jsx clean.
+
+Avoid putting a huge amount of styling directly inside JSX.
+
+Prefer reusable CSS classes or the project's existing styling system.
+
+If necessary, create:
+
+SpatialLoginCard
+SpatialInput
+SpatialButton
+SpatialBackground
+
+But do not over-engineer a simple login page.
+
+Reuse existing project design tokens if available.
+
+==================================================
+FINAL VISUAL TARGET
+===================
+
+The final login page should look like:
+
+A premium floating enterprise login interface inside a subtle spatial environment.
+
+Visual hierarchy:
+
+```
+    Ambient Spatial Background
+
+            ◯
+         Logo
+
+      Application Name
+      Sign in to continue
+
+  ┌─────────────────────┐
+  │ 👤 Username         │
+  └─────────────────────┘
+
+  ┌─────────────────────┐
+  │ 🔒 Password         │
+  └─────────────────────┘
+
+  ┌─────────────────────┐
+  │      Sign In        │
+  └─────────────────────┘
+
+  Submit an internal visitor request
+```
+
+The interface should feel:
+
+"Clean enough for an enterprise system, but futuristic enough to feel like a next-generation application."
+
+==================================================
+IMPORTANT FINAL RULE
+====================
+
+Do NOT change functionality.
+
+Do NOT change authentication.
+
+Do NOT change routes.
+
+Do NOT change backend.
+
+Do NOT add QR functionality.
+
+Do NOT remove the visitor-request link.
+
+Do NOT replace the existing login process.
+
+Only transform the existing Login Page into a polished **Spatial UI experience**.

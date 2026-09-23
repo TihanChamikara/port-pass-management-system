@@ -65,6 +65,7 @@ class PassResponse(PassBase):
     issued_time: datetime
     received_time: datetime | None
     status: PassStatus
+    visitor_type: str | None = None
 
 
 class PassListResponse(BaseModel):

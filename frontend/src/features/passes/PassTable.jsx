@@ -78,6 +78,18 @@ export default function PassTable({ data, loading, filters, onFilterChange, onCh
               {TYPE_OPTIONS.map((t) => <MenuItem key={t} value={t} sx={{ textTransform: 'capitalize' }}>{t}</MenuItem>)}
             </Select>
           </FormControl>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel>Visitor Type</InputLabel>
+            <Select
+              value={filters.visitor_type || ""}
+              label="Visitor Type"
+              onChange={(e) => onFilterChange("visitor_type", e.target.value)}
+            >
+              <MenuItem value=""><em>All</em></MenuItem>
+              <MenuItem value="normal">Normal</MenuItem>
+              <MenuItem value="vip">VIP</MenuItem>
+            </Select>
+          </FormControl>
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <InputLabel>Access Level</InputLabel>
             <Select
@@ -145,7 +157,14 @@ export default function PassTable({ data, loading, filters, onFilterChange, onCh
                     <TableRow key={row.id}>
                       <TableCell>{row.sr_no}</TableCell>
                       <TableCell>{row.pass_no}</TableCell>
-                      <TableCell>{row.visitor_name}</TableCell>
+                      <TableCell>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <span>{row.visitor_name}</span>
+                          {row.visitor_type === 'vip' && (
+                            <Chip label="VIP" size="small" color="secondary" sx={{ height: 20, fontSize: '0.7rem' }} />
+                          )}
+                        </Stack>
+                      </TableCell>
                       <TableCell>{row.company_name}</TableCell>
                       <TableCell>{row.nic_number}</TableCell>
                       <TableCell>{row.contact_number}</TableCell>

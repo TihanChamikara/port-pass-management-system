@@ -1,0 +1,14 @@
+﻿--- xl/worksheets/sheet1.xml ---
+ |  |  |  |  |  |  |  |  | Internal Requester  - (CWIT Employee / Department) |  |  |  |  |  |  |  |  | 
+ |  | External Requester  - (External Company / Organization Representative) |  |  |  |  |  |  |  |  | 
+ | Welcome to the Visitor Management Portal |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ | Managing Visitors, Protecting CWIT |  |  |  |  |  |  | 
+ | Internal Requester |  |  |  |  |  | 
+ | External Requester |  |  |  |  |  | 
+
+
+--- xl/worksheets/sheet2.xml ---
+ | Internal Visitor Pass Request Process Flow |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ |  |  |  |  |  |  |  |  |  |  |  |  | Operations |  |  |  |  |  | 
+ | 1. Internal Requester: Submit the visitor request with all required details through the Visitor Management Portal. |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+Error reading C:\Users\Dell\Desktop\New folder (3)\New folder\Visitor Mangement System_070926.xlsx: 'charmap' codec can't encode characters in position 6-7: character maps to <undefined>

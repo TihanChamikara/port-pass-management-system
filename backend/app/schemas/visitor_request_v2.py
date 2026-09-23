@@ -64,6 +64,14 @@ class PublicVisitorRequestCreate(BaseModel):
     # Additional
     additional_notes: Optional[str] = Field(None, max_length=2000)
     supporting_docs_urls: Optional[List[str]] = Field(None, description="Uploaded file URLs")
+    request_source: Optional[str] = Field("external", description="'internal' or 'external'")
+
+    # Visitor Category
+    visitor_category: Optional[str] = Field(None, max_length=100, description="Visitor category (e.g., Contractor, Supplier)")
+
+    # Multiple visitors & vehicles (full arrays from form)
+    visitors: Optional[List[Dict[str, Any]]] = Field(None, description="Full list of visitors [{name, nic_passport, company, contact_no}]")
+    vehicles: Optional[List[Dict[str, Any]]] = Field(None, description="Full list of vehicles [{vehicle_no}]")
 
     @model_validator(mode="after")
     def validate_dates(self):
@@ -79,6 +87,7 @@ class PublicVisitorRequestResponse(BaseModel):
     request_id: str
     status: str
     current_stage: str
+    requester_name: Optional[str] = None
     requester_email: str
     visitor_name: str
     visitor_email: Optional[str] = None
@@ -100,6 +109,15 @@ class PublicVisitorRequestResponse(BaseModel):
     rejection_reason: Optional[str] = None
     visitor_type: str = 'normal'
     vip_lmv_access: Optional[str] = None
+    visitor_category: Optional[str] = None
+    visitors_json: Optional[List[Dict[str, Any]]] = None
+    vehicles_json: Optional[List[Dict[str, Any]]] = None
+    additional_notes: Optional[str] = None
+    vehicle_number: Optional[str] = None
+    carrying_equipment: bool = False
+    equipment_description: Optional[str] = None
+    updated_at: Optional[datetime] = None
+    request_source: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -110,6 +128,28 @@ class PublicVisitorRequestResponse(BaseModel):
         """Parse zones from JSON if string."""
         if isinstance(v, str):
             return json.loads(v)
+        return v
+
+    @field_validator("visitors_json", mode="before")
+    @classmethod
+    def parse_visitors_json(cls, v):
+        """Parse visitors from JSON if string."""
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return v
+
+    @field_validator("vehicles_json", mode="before")
+    @classmethod
+    def parse_vehicles_json(cls, v):
+        """Parse vehicles from JSON if string."""
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
         return v
 
 
@@ -125,6 +165,7 @@ class PublicRequestStatusResponse(BaseModel):
     status: str  # DRAFT, PENDING_DEPARTMENT_APPROVAL, PENDING_APPROVAL, etc.
     status_display: str  # Human-readable status
     current_stage: str
+    requester_name: Optional[str] = None
     visitor_name: str
     visitor_purpose: str
     department_id: Optional[int] = None
@@ -296,6 +337,22 @@ class RequestFullDetails(BaseModel):
     gate_officer_checked_out_id: Optional[int]
     visitor_type: str = 'normal'
     vip_lmv_access: Optional[str] = None
+    
+    # Missing fields identified in audit
+    visitor_category: Optional[str] = None
+    visitors_json: Optional[List[Dict[str, Any]]] = None
+    vehicles_json: Optional[List[Dict[str, Any]]] = None
+    department_id: Optional[int] = None
+    department_name: Optional[str] = None
+    pass_record_id: Optional[int] = None
+    operations_approved: bool = False
+    nic_verified: bool = False
+    pass_returned: bool = False
+    record_closed_by_id: Optional[int] = None
+    record_closed_at: Optional[datetime] = None
+    dept_manager_id: Optional[int] = None
+    visitor_photo_url: Optional[str] = None
+    request_source: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -314,4 +371,26 @@ class RequestFullDetails(BaseModel):
         """Parse docs from JSON if string."""
         if isinstance(v, str):
             return json.loads(v) if v else None
+        return v
+
+    @field_validator("visitors_json", mode="before")
+    @classmethod
+    def parse_visitors_json(cls, v):
+        """Parse visitors from JSON if string."""
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return v
+
+    @field_validator("vehicles_json", mode="before")
+    @classmethod
+    def parse_vehicles_json(cls, v):
+        """Parse vehicles from JSON if string."""
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
         return v

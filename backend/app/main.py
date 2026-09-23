@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import logging
 
-from app.api.routes import alerts, audit_logs, auth, dashboard, departments, groups, passes_v2, reports, security, users, zones, visitor_requests_v2, notifications
+from app.api.routes import alerts, audit_logs, auth, dashboard, departments, groups, passes_v2, reports, security, users, zones, visitor_requests_v2, notifications, system_health
 from app.core.security import get_password_hash
 from app.core.settings import get_settings
 from app.db.database import Base, SessionLocal, engine
@@ -52,6 +52,7 @@ app.include_router(dashboard.router, prefix="/api")
 # app.include_router(visitor_requests.router, prefix="/api")  # DEPRECATED: Use visitor_requests_v2 instead
 app.include_router(visitor_requests_v2.router)  # NEW: Formal workflow state machine routes with public endpoints
 app.include_router(notifications.router, prefix="/api")
+app.include_router(system_health.router)  # HA/DR System Health Dashboard
 app.include_router(departments.router)  # Public: GET /api/departments
 
 

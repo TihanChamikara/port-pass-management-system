@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, require_admin_or_staff
+from app.api.deps import get_current_user, get_db, require_admin_or_staff, require_group_pass_issuer
 from app.models import PassGroup, PassRecord, User
 from app.schemas.pass_group import (
     PassGroupAddVisitors,
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/pass-groups", tags=["Group Passes"])
 def create_group(
     payload: PassGroupCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin_or_staff()),
+    current_user: User = Depends(require_group_pass_issuer()),
 ) -> PassGroupResponse:
     """Create a new group pass (Step 1)."""
     group = group_service.create_group_pass(db, payload, current_user)
@@ -38,7 +38,7 @@ def add_visitors(
     group_id: int,
     payload: PassGroupAddVisitors,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin_or_staff()),
+    current_user: User = Depends(require_group_pass_issuer()),
 ) -> list[dict]:
     """Add visitors to a group (Step 2). Creates individual passes."""
     try:
@@ -152,7 +152,7 @@ def get_group_detail(
 def complete_group(
     group_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin_or_staff()),
+    current_user: User = Depends(require_group_pass_issuer()),
 ) -> PassGroupResponse:
     """Mark a group as completed."""
     try:
@@ -169,7 +169,7 @@ def remove_visitor(
     group_id: int,
     pass_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin_or_staff()),
+    current_user: User = Depends(require_group_pass_issuer()),
 ) -> dict:
     """Remove a visitor from a group (only if group is still in draft)."""
     try:
@@ -187,7 +187,7 @@ def remove_visitor(
 def approve_group(
     group_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin_or_staff()),
+    current_user: User = Depends(require_group_pass_issuer()),
 ) -> PassGroupResponse:
     """Approve a group pass request."""
     try:
@@ -203,7 +203,7 @@ def approve_group(
 def reject_group(
     group_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin_or_staff()),
+    current_user: User = Depends(require_group_pass_issuer()),
 ) -> PassGroupResponse:
     """Reject a group pass request."""
     try:
@@ -213,3 +213,4 @@ def reject_group(
         return group
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+

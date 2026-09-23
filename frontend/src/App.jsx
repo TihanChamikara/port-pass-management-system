@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './features/authStore';
 import { useThemeStore } from './features/themeStore';
 import MainLayout from './components/MainLayout';
@@ -8,6 +8,7 @@ import MainLayout from './components/MainLayout';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
 // Lazy load pages
+const LandingPage      = React.lazy(() => import('./pages/LandingPage'));
 const LoginPage        = React.lazy(() => import('./pages/LoginPage'));
 const DashboardPage    = React.lazy(() => import('./pages/DashboardPage'));
 const VisitorRequestPage = React.lazy(() => import('./pages/VisitorRequestPage'));
@@ -20,6 +21,7 @@ const ReportsPage      = React.lazy(() => import('./pages/ReportsPage'));
 const AuditLogsPage    = React.lazy(() => import('./pages/AuditLogsPage'));
 const PassesPage       = React.lazy(() => import('./pages/PassesPage'));
 const DeptManagerPage  = React.lazy(() => import('./pages/DeptManagerPage'));
+const SystemHealthPage = React.lazy(() => import('./pages/SystemHealthPage'));
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, user, loading } = useAuthStore();
@@ -34,15 +36,21 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 function App() {
   const { fetchMe, token } = useAuthStore();
   const { darkMode } = useThemeStore();
+  const location = useLocation();
+
+  // Disable dark mode on public forms so they remain clean & readable
+  const publicPages = ['/', '/visitor-request', '/external-visitor-request', '/login'];
+  const isPublicPage = publicPages.includes(location.pathname);
+  const effectiveDarkMode = isPublicPage ? false : darkMode;
 
   // Keep MUI theme in sync
   const muiTheme = createTheme({
     palette: {
-      mode: darkMode ? 'dark' : 'light',
+      mode: effectiveDarkMode ? 'dark' : 'light',
       primary: { main: '#0ea5e9' },
       background: {
-        default: darkMode ? '#0b1120' : '#f1f5f9',
-        paper:   darkMode ? '#0f172a' : '#ffffff',
+        default: effectiveDarkMode ? '#0b1120' : '#f1f5f9',
+        paper:   effectiveDarkMode ? '#0f172a' : '#ffffff',
       },
     },
     typography: {
@@ -52,8 +60,8 @@ function App() {
 
   // Apply data-theme attribute to <html> for CSS variable dark overrides
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+    document.documentElement.setAttribute('data-theme', effectiveDarkMode ? 'dark' : 'light');
+  }, [effectiveDarkMode]);
 
   useEffect(() => {
     if (token) fetchMe();
@@ -65,6 +73,7 @@ function App() {
       <React.Suspense fallback={<div style={{ padding: 50, textAlign: 'center' }}>Loading application...</div>}>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/visitor-request" element={<VisitorRequestPage />} />
           <Route path="/external-visitor-request" element={<ExternalVisitorRequestPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -90,7 +99,7 @@ function App() {
             <Route
               path="/issue-passes"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'pass_officer']}>
+                <ProtectedRoute allowedRoles={['admin', 'pass_officer', 'operations_officer']}>
                   <PassIssuingPage />
                 </ProtectedRoute>
               }
@@ -98,7 +107,7 @@ function App() {
             <Route
               path="/passes"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'pass_officer']}>
+                <ProtectedRoute allowedRoles={['admin', 'pass_officer', 'operations_officer']}>
                   <PassesPage />
                 </ProtectedRoute>
               }
@@ -114,7 +123,7 @@ function App() {
             <Route
               path="/group-passes"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'pass_officer']}>
+                <ProtectedRoute allowedRoles={['admin', 'department_manager']}>
                   <GroupPassPage />
                 </ProtectedRoute>
               }
@@ -143,10 +152,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/system-health"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <SystemHealthPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
-          {/* Redirects */}
-          <Route path="/" element={<Navigate to="/visitor-request" />} />
         </Routes>
       </React.Suspense>
     </ThemeProvider>

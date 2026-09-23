@@ -59,6 +59,8 @@ class VisitorRequest(Base):
     visitor_organization: Mapped[str | None] = mapped_column(String(150))
     visitor_photo_url: Mapped[str | None] = mapped_column(Text)  # S3/CDN URL for visitor photo
     visitor_purpose: Mapped[str] = mapped_column(String(500))  # Purpose of visit
+    visitor_category: Mapped[str | None] = mapped_column(String(100))  # Visitor category (e.g., Contractor, Supplier, etc.)
+    request_source: Mapped[str | None] = mapped_column(String(20), default="external")  # 'internal' or 'external'
 
     # ============================================================================
     # VISIT INFORMATION
@@ -86,6 +88,8 @@ class VisitorRequest(Base):
     # ============================================================================
     additional_notes: Mapped[str | None] = mapped_column(Text)  # Comments/special instructions
     supporting_docs_urls: Mapped[str | None] = mapped_column(Text)  # JSON list of uploaded file URLs
+    visitors_json: Mapped[str | None] = mapped_column(Text)  # JSON: full list of all visitors [{name, nic_passport, company, contact_no}]
+    vehicles_json: Mapped[str | None] = mapped_column(Text)  # JSON: full list of all vehicles [{vehicle_no}]
 
     # ============================================================================
     # WORKFLOW STATE & TRANSITIONS

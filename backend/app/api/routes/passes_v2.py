@@ -22,8 +22,10 @@ router = APIRouter(prefix="/passes", tags=["Passes"])
 logger = logging.getLogger(__name__)
 
 
-def _serialize_pass(record: PassRecord) -> PassResponse:
-    return PassResponse.model_validate(record, from_attributes=True)
+def _serialize_pass(record: PassRecord, visitor_type: str | None = None) -> PassResponse:
+    obj = PassResponse.model_validate(record, from_attributes=True)
+    obj.visitor_type = visitor_type
+    return obj
 
 
 def _log_and_raise_500(error: Exception, current_user: User | None = None) -> None:
@@ -60,13 +62,14 @@ def list_passes(
     zone: Zone | None = Query(default=None),
     target_date: date | None = Query(default=None),
     status: PassStatus | None = Query(default=None),
+    visitor_type: str | None = Query(default=None, description="Filter by VIP or Normal"),
     sort: str = Query(default="desc"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> PassListResponse:
     """List all passes with filtering and pagination."""
     logger.info(
-        "Listing passes page=%s page_size=%s search=%s pass_type=%s access_level=%s zone=%s target_date=%s status=%s sort=%s user=%s",
+        "Listing passes page=%s page_size=%s search=%s pass_type=%s access_level=%s zone=%s target_date=%s status=%s visitor_type=%s sort=%s user=%s",
         page,
         page_size,
         search,
@@ -75,6 +78,7 @@ def list_passes(
         zone.value if zone else None,
         target_date.isoformat() if target_date else None,
         status.value if status else None,
+        visitor_type,
         sort,
         current_user.username,
     )
@@ -86,7 +90,16 @@ def list_passes(
         if access_level not in {None, "single", "all"}:
             raise HTTPException(status_code=400, detail='access_level must be "single" or "all"')
 
-        query = db.query(PassRecord)
+        from app.models.visitor_request import VisitorRequest
+
+        query = db.query(PassRecord, VisitorRequest.visitor_type).outerjoin(VisitorRequest, VisitorRequest.pass_record_id == PassRecord.id)
+        
+        if current_user.role == "pass_officer":
+            # Pass officers manage non-VIP passes, Ops officers can see all
+            query = query.filter(or_(VisitorRequest.visitor_type != "vip", VisitorRequest.id == None))
+            
+        if visitor_type:
+            query = query.filter(VisitorRequest.visitor_type == visitor_type)
 
         if search:
             term = f"%{search.strip()}%"
@@ -120,13 +133,14 @@ def list_passes(
         rows = query.all()
 
         if access_level == "single":
-            rows = [record for record in rows if len(record.allowed_zones or []) == 1]
+            rows = [row for row in rows if len(row[0].allowed_zones or []) == 1]
         elif access_level == "all":
-            rows = [record for record in rows if len(record.allowed_zones or []) > 1]
+            rows = [row for row in rows if len(row[0].allowed_zones or []) > 1]
 
         total = len(rows)
         start_index = (page - 1) * page_size
-        items = [_serialize_pass(record) for record in rows[start_index : start_index + page_size]]
+        items = [_serialize_pass(row[0], visitor_type=row[1]) for row in rows[start_index : start_index + page_size]]
+
         return PassListResponse(items=items, total=total, page=page, page_size=page_size)
     except HTTPException:
         raise

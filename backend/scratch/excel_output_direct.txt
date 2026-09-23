@@ -1,0 +1,183 @@
+--- xl/worksheets/sheet1.xml ---
+ |  |  |  |  |  |  |  |  | Internal Requester  - (CWIT Employee / Department) |  |  |  |  |  |  |  |  | 
+ |  | External Requester  - (External Company / Organization Representative) |  |  |  |  |  |  |  |  | 
+ | Welcome to the Visitor Management Portal |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ | Managing Visitors, Protecting CWIT |  |  |  |  |  |  | 
+ | Internal Requester |  |  |  |  |  | 
+ | External Requester |  |  |  |  |  | 
+
+
+--- xl/worksheets/sheet2.xml ---
+ | Internal Visitor Pass Request Process Flow |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ |  |  |  |  |  |  |  |  |  |  |  |  | Operations |  |  |  |  |  | 
+ | 1. Internal Requester: Submit the visitor request with all required details through the Visitor Management Portal. |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ |  | ⬇️ |  |  |  |  |  |  |  |  |  | HR and Admin |  |  |  |  |  | 
+ | 2. Head of Department (HOD) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ | Review the request and either: |  |  |  |  |  |  |  |  |  | Techno Commercial |  |  | 
+ | Approve and forward it to the Security Control Room (SCR), or |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ | Allow it to proceed directly to SCR based on predefined authorization criteria. |  |  |  |  |  |  |  |  |  | IT |  |  | 
+ | 3. Security Control Room (SCR) |  |  |  |  |  |  |  |  |  | Project |  |  | 
+ | Verify the request details and conduct the necessary security clearance checks. |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ | Approve and forward the request to the Visitor Management Cell. |  |  |  |  |  |  |  |  |  | Business Development |  |  | 
+ | For VIP visitors, notify and coordinate directly with the LMV 2 Gate. |  |  |  |  |  |  |  |  |  |  | 
+ | ⬇️ |  |  |  |  |  |  |  |  | Engineering |  |  | 
+ | 4. Visitor Management Cell / Pass Section |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ | Issue the appropriate visitor pass. |  |  |  |  |  |  |  |  |  | Finance |  |  |  | 
+ | Communicate pass issuance details to the LMV 2 Gate and relevant parties. |  |  |  |  |  |  |  |  |  |  |  | 
+ |  | ⬇️ |  |  |  |  |  |  |  | HSE |  |  |  | 
+ | 5. LMV 2 Gate/People Access Point |  |  |  |  |  |  |  |  |  |  | 
+ | Verify visitor identity (NIC/Passport). | Security |  |  |  | 
+ | Conduct security checks if required. |  |  |  | 
+ | Grant entry and direct the visitor to the designated location. | ESG |  |  | 
+ | ⬇️ |  | 
+6. Visitor Departure |  |  |  | 
+Visitor returns the pass at the pass securition and collect NIC/PP point. |  | 
+Pass Section/Security records the exit and closes the visit record. |  | 
+Concise Flow |  |  |  | 
+Internal Requester → HOD Review → SCR Security Clearance → Visitor Management Cell (Pass Issuance) → LMV 2 Gate (Access Control) |  |  |  | 
+
+
+--- xl/worksheets/sheet3.xml ---
+ |  |  |  |  |  |  |  |  | First screen of the Visitor Management Portal. From this screen, requesters will be able to access their respective Department Dashboard through a login. Each department will be provided with two login credentials, enabling authorized users to submit visitor requests, monitor request status, and manage visitor records in accordance with their assigned access rights |  |  |  |  |  |  |  |  | 
+ | Visitor Management System |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ | Managing Visitors, Protecting CWIT |  |  |  |  |  |  | 
+ | Operations |  |  |  | Business Development |  |  | 
+ | HR and Admin |  |  |  | Engineering |  |  | 
+ | Techno Commercial |  |  |  | Finance |  |  | 
+ | IT |  |  |  | HSE |  |  | 
+ | Project |  |  |  | ESG |  |  | 
+ | Security |  |  | 
+
+
+--- xl/worksheets/sheet4.xml ---
+ | Welcome to the Visitor Management Portal |  |  |  |  |  |  | 
+ | Managing Visitors, Protecting CWIT |  |  |  |  |  |  | 
+ |  | Sign in using user credentials |  |  |  |  |  | 
+ | User Name |  |  |  |  |  | 
+ | Password |  |  |  |  |  | 
+ |  | Login |  |  |  |  |  | 
+User ID and PW to be created by the Admin for each line department
+
+
+--- xl/worksheets/sheet5.xml ---
+ |  | Welcome to the Visitor Management Portal |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ |  |  |  |  |  |  |  |  |  |  | Vistor Category |  |  |  |  |  |  |  |  | 
+Internal Request |  |  |  |  |  |  |  |  |  |  | Internal Visitor (CWIT Staff) |  |  |  |  |  |  |  |  | 
+ | Visitor Request Details |  |  |  |  |  |  |  | PS & LMV2 | Port User Visitor (Port Agents, Port-related organizations) |  |  |  |  |  |  |  |  | 
+ | Field |  |  | Details |  |  |  |  |  |  | Contractor/Vender (Project/maintenance workers)
+ | Requester's Name |  |  | _____________________ |  |  |  |  |  |  | LMV2 | Government Official (Customs/Navy/Police/MEPA/CEA/Health Services/Labour Department/SLPA) |  |  | 
+ | Line Department |  |  | Select from List |  |  |  |  |  |  |  | VIP/Official Visitor |  |  | 
+ | Visit Purpose |  |  | Select from List |  |  |  |  |  |  |  | Bussiness Visitor
+ | Visitor Category |  |  | Select from List |  |  |  |  |  |  | Department Visitor
+ | Visit Area |  |  | Select from List |  |  |  |  |  |  | Educational Visit | 
+ | Visit Date |  |  | _______________________ |  |  |  |  |  |  | General External Visitor | 
+ | Duration of the Visit |  |  |  |  |  |  |  |  |  | Other | 
+ | Expected Time In |  |  | _______________________ |  |  |  |  |  |  | 
+ | Expected Time Out |  |  | _______________________ |  |  |  |  |  |  | Visit Area |  |  |  | 
+ | Host Name/Line Dpt Rep |  |  | _______________________ |  |  |  |  |  |  | Onboard Vessel |  |  | POB | 
+ |  |  |  |  |  |  |  |  | Wharf Area / Quay Side |  |  | Pass Office & Security Building | 
+ | Visitor Details |  |  |  |  |  |  |  |  |  | Yard Area |  |  | Wharf Building | 
+ | S.N | Visitor Name |  | NIC / Passport No. |  | Company/Organization |  |  | Contact No |  | Gate Complex |  |  | OHS Building | 
+ | 1 |  |  |  |  |  |  |  |  |  | Container Inspection Area |  |  | DG Station  | 
+ | 2 |  |  |  |  |  |  |  |  |  | Empty Container Yard |  |  | Workshop / Maintenance Facility
+ | 3 |  |  |  |  |  |  |  |  |  | Reefer Monitoring Area |  |  | 
+ | 4 |  |  |  |  |  |  |  |  |  |  | 
+ | S.N | Vehicle No. |  |  | Visit Purpose |  |  | 
+ |  |  |  |  | Business Meeting | Safety Inspection
+ |  |  |  |  | Official Visit | Security Inspection
+ |  |  |  |  | Site Visit | Training Program
+ |  | Vessel Operations | VIP Visit
+ |  |  |  |  |  |  |  |  |  |  | Cargo Operations | Departmental Guest
+Project Work | Emergency Response
+Maintenance Work | Audit
+Equipment Inspection | Other
+CWIT Departments/Host |  |  |  | 
+CEO  |  | Finance | 
+Operations |  | IT
+Business Development |  |  | HSE
+HR and Admin |  |  | Project
+Engineering |  |  | ESG | 
+Techno Commercial | Security
+
+
+--- xl/worksheets/sheet6.xml ---
+CWIT External Visitor Pass Request Process Flow |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+1. External Visitor  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+External visitor submits visitor details through the Visitor Management Portal  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+⬇️ |  |  |  |  |  |  |  |  |  |  |  | 
+2. Line Department Authorized Approver/HOD |  |  |  |  |  |  |  |  |  | 
+Review the request. |  |  |  |  |  |  |  |  |  | 
+Verify the business requirement and authorize the visit. |  |  |  |  |  |  |  |  |  |  | 
+Forward the approved request to the Security Control Room (SCR). |  |  |  |  |  |  |  |  |  |  | 
+⬇️ |  |  |  |  |  |  |  |  | 
+3. Security Control Room (SCR) |  |  |  |  |  |  |  |  |  | 
+Review visitor details and conduct necessary security screening. |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+Verify visit purpose, access requirements, and any restrictions. |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+Grant security clearance and forward the request to the Visitor Management Cell / Pass Section. |  |  |  |  |  |  |  |  |  |  |  | 
+For VIP, Government, Customer, or Special Guests, notify LMV 2 Gate and relevant stakeholders in advance. |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ |  | ⬇️ |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+4. Visitor Management Cell / Pass Section |  |  |  |  |  | 
+Issue the appropriate visitor pass based on the approved access level. |  |  |  |  | 
+Notify LMV 2 Gate and maintain visitor records. |  |  |  |  | 
+⬇️ |  | 
+5. LMV 2 Gate/People Access Point |  | 
+Verify visitor identity (NIC/Passport). |  |  |  | 
+Conduct security checks if required. |  | 
+Grant entry and direct the visitor to the designated location. |  | 
+ | ⬇️ |  | 
+6. Visitor Departure |  | 
+Visitor returns the pass at the pass securition and collect NIC/PP point. |  | 
+Pass Section/Security records the exit and closes the visit record. |  | 
+
+
+--- xl/worksheets/sheet7.xml ---
+ | Welcome to the Visitor Management Portal |  |  |  |  |  |  | 
+ | Managing Visitors, Protecting CWIT |  |  |  |  |  |  | 
+ |  | Sign in using user credentials |  |  |  |  |  | 
+ | User Name |  |  |  |  |  | 
+ | Password |  |  |  |  |  | 
+ |  | Sign In |  |  |  |  |  | 
+ |  | Sign  Up |  |  |  |  |  | 
+
+
+--- xl/worksheets/sheet8.xml ---
+ |  | Welcome to the Visitor Management Portal |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
+ |  |  |  |  |  |  |  |  |  |  | Vistor Category |  |  |  |  |  |  |  |  | 
+External Request |  |  |  |  |  |  |  |  |  |  | Internal Visitor (CWIT Staff) |  |  |  |  |  |  |  |  | 
+ | Visitor Request Details |  |  |  |  |  |  |  | PS & LMV2 | Port User Visitor (Port Agents, Port-related organizations) |  |  |  |  |  |  |  |  | 
+ | Field |  |  | Details |  |  |  |  |  |  | Contractor/Vender (Project/maintenance workers)
+ | Requester's Name |  |  | _____________________ |  |  |  |  |  |  | LMV2 | Government Officials (Customs/Navy/Police/MEPA/CEA/Health Services/Labour Department/SLPA) |  |  | 
+ | Organization/Company |  |  | _______________________ |  |  |  |  |  |  |  | VIP/Official Visitor |  |  | 
+ | Visit Purpose |  |  | Select from List |  |  |  |  |  |  |  | Bussiness Visitor
+ | Visitor Category |  |  | Select from List |  |  |  |  |  |  | Department Visitor
+ | Visit Area |  |  | Select from List |  |  |  |  |  |  | Educational Visit | 
+ | Host/CWIT Line Department |  |  | Select from List |  |  |  |  |  |  | General External Visitor | 
+ | Visit Date |  |  | _______________________ |  |  |  |  |  |  | Other | 
+ | Duration of the Visit |  |  | _______________________ |  |  |  |  |  |  | 
+ | Expected Time In |  |  | _______________________ |  |  |  |  |  |  | 
+Expected Time Out |  |  |  |  |  |  |  |  |  | Visit Area |  |  |  | 
+ |  |  |  |  |  |  |  |  | Onboard Vessel |  |  | POB | 
+ | Visitor Details |  |  |  |  |  |  |  |  |  | Wharf Area / Quay Side |  |  | Pass Office & Security Building | 
+ | S.N | Visitor Name |  | NIC / Passport No. |  | Company/Organization |  |  | Contact No |  | Yard Area |  |  | Wharf Building | 
+ | 1 |  |  |  |  |  |  |  |  |  | Gate Complex |  |  | OHS Building | 
+ | 2 |  |  |  |  |  |  |  |  |  | Container Inspection Area |  |  | DG Station 
+ | 3 |  |  |  |  |  |  |  |  |  | Empty Container Yard |  |  | Workshop / Maintenance Facility
+ | 4 |  |  |  |  |  |  |  |  |  | Reefer Monitoring Area |  |  | 
+ |  | Visit Purpose |  |  | 
+ | S.N | Vehicle No. |  |  | Business Meeting | Safety Inspection
+ |  |  |  |  | Official Visit | Security Inspection
+ |  |  |  |  | Site Visit | Training Program
+ |  |  |  |  | Vessel Operations | VIP Visit
+ |  | Cargo Operations | Departmental Guest
+ |  |  |  |  |  |  |  |  |  |  | Project Work | Emergency Response
+Maintenance Work | Audit
+Equipment Inspection | Other
+CWIT Departments/Host |  |  |  | 
+CEO  |  | Finance | 
+Operations/DM |  | IT
+Business Development |  |  | HSE
+HR and Admin |  |  | Project
+Engineering |  |  | ESG |  |  | 
+Techno Commercial | Security
+
+

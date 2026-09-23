@@ -1,14 +1,22 @@
-import React from 'react';
 import { Form, Input, Button, message } from 'antd';
-import { UserOutlined, LockOutlined, SecurityScanOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, ArrowRightOutlined, LinkOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../features/authStore';
+
+/* ── Logo Component ── */
+const PortLogo = () => (
+  <div className="logo-section">
+    <div className="logo-halo">
+      <img src="/cwit-logo-removebg-preview.png" alt="CWIT Logo" className="logo" />
+    </div>
+  </div>
+);
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login, loading } = useAuthStore();
   const [form] = Form.useForm();
-
+  
   const onFinish = async (values) => {
     const result = await login(values.username, values.password);
     if (result.success) {
@@ -20,279 +28,431 @@ const LoginPage = () => {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+    <div className="spatial-env">
+      
+      {/* Background Layer */}
+      <div className="spatial-background" />
 
-      {/* ── Left Panel: Port Security Branding & Visual ── */}
-      <div style={{
-        flex: '0 0 48%',
-        background: 'linear-gradient(160deg, #060d1f 0%, #0b1329 50%, #0f1e36 100%)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '48px 40px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Background port silhouette */}
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', pointerEvents: 'none' }}>
-          <svg viewBox="0 0 600 400" style={{ width: '100%', opacity: 0.07 }} preserveAspectRatio="xMidYMax meet">
-            {/* Containers */}
-            <rect x="40" y="200" width="120" height="80" fill="#fff" rx="3"/>
-            <rect x="170" y="170" width="120" height="110" fill="#fff" rx="3"/>
-            <rect x="300" y="190" width="120" height="90" fill="#fff" rx="3"/>
-            <rect x="430" y="160" width="120" height="120" fill="#fff" rx="3"/>
-            {/* Crane tower */}
-            <rect x="270" y="40" width="10" height="160" fill="#fff"/>
-            <rect x="200" y="40" width="80" height="8" fill="#fff"/>
-            <line x1="275" y1="40" x2="200" y2="100" stroke="#fff" strokeWidth="3"/>
-            <line x1="275" y1="40" x2="340" y2="100" stroke="#fff" strokeWidth="3"/>
-            {/* Ground */}
-            <rect x="0" y="280" width="600" height="20" fill="#fff" opacity="0.5"/>
-            {/* Water */}
-            <rect x="0" y="300" width="600" height="100" fill="#fff" opacity="0.2"/>
-          </svg>
-        </div>
-
-        {/* Branding */}
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 48 }}>
-          <div style={{
-            width: 72,
-            height: 72,
-            background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
-            borderRadius: 20,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 24px',
-            boxShadow: '0 8px 32px rgba(14,165,233,0.45)',
-          }}>
-            <SecurityScanOutlined style={{ fontSize: 34, color: '#fff' }} />
-          </div>
-          <h1 style={{
-            fontSize: '2.2rem',
-            fontWeight: 900,
-            color: '#f1f5f9',
-            margin: '0 0 8px',
-            letterSpacing: '1.5px',
-            fontFamily: "'Plus Jakarta Sans','Inter',sans-serif",
-          }}>
-            PORT PASS PRO
-          </h1>
-          <p style={{ color: '#64748b', fontSize: '1rem', margin: '0 0 4px' }}>
-            Enterprise Command Center
-          </p>
-          <p style={{ color: '#334155', fontSize: '0.85rem', margin: 0 }}>
-            Port Security & Visitor Operations Platform
-          </p>
-        </div>
-
-        {/* CSS 3D Port Gate Visualization */}
-        <div style={{ position: 'relative', zIndex: 1, perspective: '800px' }}>
-          <svg
-            viewBox="0 0 260 200"
-            style={{
-              width: 260,
-              transform: 'rotateY(-12deg) rotateX(6deg)',
-              filter: 'drop-shadow(0 20px 40px rgba(14,165,233,0.3))',
-              transition: 'transform 0.4s ease',
-            }}
-          >
-            {/* Gate posts */}
-            <rect x="20" y="40" width="18" height="130" fill="#1e3a5f" rx="3"/>
-            <rect x="220" y="40" width="18" height="130" fill="#1e3a5f" rx="3"/>
-            {/* Crossbeam - accent blue */}
-            <rect x="14" y="28" width="230" height="18" fill="#0ea5e9" rx="4"/>
-            {/* Gate arm - left */}
-            <rect x="38" y="46" width="90" height="11" fill="#0284c7" rx="3" opacity="0.9"/>
-            {/* Gate arm - right */}
-            <rect x="130" y="46" width="90" height="11" fill="#0284c7" rx="3" opacity="0.9"/>
-            {/* Status lights */}
-            <circle cx="29" cy="22" r="5" fill="#10b981"/>
-            <circle cx="229" cy="22" r="5" fill="#10b981"/>
-            <circle cx="29" cy="22" r="8" fill="#10b981" opacity="0.25"/>
-            <circle cx="229" cy="22" r="8" fill="#10b981" opacity="0.25"/>
-            {/* Road markings */}
-            <rect x="0" y="168" width="258" height="24" fill="#1e293b" rx="3"/>
-            <rect x="105" y="173" width="50" height="6" fill="#f59e0b" rx="2" opacity="0.7"/>
-            {/* Security booth */}
-            <rect x="188" y="90" width="44" height="70" fill="#1e3a5f" rx="4"/>
-            <rect x="195" y="100" width="14" height="10" fill="#7dd3fc" opacity="0.7" rx="1"/>
-            <rect x="213" y="100" width="14" height="10" fill="#7dd3fc" opacity="0.7" rx="1"/>
-            <rect x="200" y="130" width="14" height="30" fill="#0f172a" rx="2"/>
-            {/* Visitor vehicle */}
-            <rect x="58" y="134" width="78" height="30" fill="#334155" rx="7"/>
-            <rect x="68" y="116" width="58" height="22" fill="#475569" rx="5"/>
-            <rect x="72" y="119" width="22" height="12" fill="#7dd3fc" rx="2" opacity="0.5"/>
-            <rect x="98" y="119" width="22" height="12" fill="#7dd3fc" rx="2" opacity="0.5"/>
-            <circle cx="78" cy="168" r="9" fill="#1e293b"/>
-            <circle cx="78" cy="168" r="4.5" fill="#475569"/>
-            <circle cx="118" cy="168" r="9" fill="#1e293b"/>
-            <circle cx="118" cy="168" r="4.5" fill="#475569"/>
-            {/* Floating ID badge */}
-            <g transform="translate(10, 60) rotate(-10)">
-              <rect x="0" y="0" width="48" height="32" fill="#0ea5e9" rx="5" opacity="0.95"/>
-              <rect x="4" y="4" width="14" height="14" fill="white" rx="2" opacity="0.9"/>
-              <rect x="22" y="6" width="22" height="3" fill="white" rx="1" opacity="0.7"/>
-              <rect x="22" y="12" width="16" height="2.5" fill="white" rx="1" opacity="0.5"/>
-              <rect x="4" y="22" width="40" height="2.5" fill="white" rx="1" opacity="0.4"/>
-              <rect x="4" y="27" width="28" height="2" fill="white" rx="1" opacity="0.3"/>
-            </g>
-          </svg>
-        </div>
-
-        {/* Feature pills */}
-        <div style={{ position: 'relative', zIndex: 1, marginTop: 32, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {['Multi-User', 'Role-Based Access', 'Real-Time Gate Control', 'Audit Logs'].map(tag => (
-            <span key={tag} style={{
-              background: 'rgba(14,165,233,0.1)',
-              border: '1px solid rgba(14,165,233,0.2)',
-              color: '#7dd3fc',
-              padding: '4px 12px',
-              borderRadius: 20,
-              fontSize: '0.72rem',
-              fontWeight: 600,
-              letterSpacing: '0.3px',
-            }}>{tag}</span>
-          ))}
-        </div>
+      {/* Surrounding UI */}
+      <div className="spatial-tag-tl">
+        <div className="spatial-tag-bar" />
+        <p><h3>Safer Access.<br/>Smarter Operations.</h3></p>
+      </div>
+      {/* Theme Toggle 
+      <div className="spatial-tag-tr">
+        <span style={{ color: '#ffffff', fontSize: 15 }}>☀</span>
+        <span className="spatial-theme-divider">|</span>
+        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: 14 }}>☾</span>
+      </div>*/}
+      
+      <div className="spatial-tag-bl">
+        <SafetyCertificateOutlined style={{ fontSize: 16 }} />
+        <span><h3>Secure • Reliable • Trusted</h3></span>
+      </div>
+      
+      <div className="spatial-tag-br">
+        <div className="spatial-tag-bar" style={{ marginLeft: 'auto' }} />
+        <p style={{ textAlign: 'right' }}><h3>Building a safer tomorrow,<br/>together.</h3></p>
       </div>
 
-      {/* ── Right Panel: Login Form ── */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: 'var(--surface-1, #ffffff)',
-        padding: '40px',
-      }}>
-        <div style={{ width: '100%', maxWidth: 400 }}>
-          <div style={{ marginBottom: 36 }}>
-            <h2 style={{
-              fontSize: '1.75rem',
-              fontWeight: 800,
-              color: '#0f172a',
-              margin: '0 0 8px',
-              letterSpacing: '-0.3px',
-              fontFamily: "'Plus Jakarta Sans','Inter',sans-serif",
-            }}>
-              Officer Login
-            </h2>
-            <p style={{ color: '#64748b', margin: 0, fontSize: '0.95rem' }}>
-              Sign in to access the Port Pass Command Center
-            </p>
-          </div>
+      {/* Login Card Layer */}
+      <div className="login-card-spatial">
+        <PortLogo />
+        
+        <h1 className="login-title">Port Pass Pro</h1>
+        <p className="login-subtitle">Sign in to continue</p>
 
-          <Form
-            form={form}
-            name="login"
-            onFinish={onFinish}
-            layout="vertical"
-            size="large"
-            autoComplete="on"
-            requiredMark={false}
+        <Form
+          form={form}
+          name="login"
+          onFinish={onFinish}
+          layout="vertical"
+          size="large"
+          requiredMark={false}
+          className="login-form"
+        >
+          <Form.Item
+            name="username"
+            rules={[{ required: true, message: 'Please enter your username.' }]}
           >
-            <Form.Item
-              name="username"
-              label={<span style={{ fontWeight: 600, color: '#374151', fontSize: '0.875rem' }}>Username</span>}
-              rules={[{ required: true, message: 'Please enter your username.' }]}
+            <Input
+              prefix={<UserOutlined className="input-icon" />}
+              placeholder="Username"
+              autoComplete="username"
+              className="spatial-input"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: 'Please enter your password.' }]}
+            style={{ marginBottom: 28 }}
+          >
+            <Input.Password
+              prefix={<LockOutlined className="input-icon" />}
+              placeholder="Password"
+              autoComplete="current-password"
+              className="spatial-input"
+            />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              loading={loading}
+              icon={!loading ? <ArrowRightOutlined /> : null}
+              className="spatial-btn"
             >
-              <Input
-                prefix={<UserOutlined style={{ color: '#94a3b8' }} />}
-                placeholder="Enter your username"
-                autoComplete="username"
-                style={{ borderRadius: 8, height: 44 }}
-              />
-            </Form.Item>
+              {loading ? 'Signing In...' : 'Sign In'}
+            </Button>
+          </Form.Item>
+        </Form>
 
-            <Form.Item
-              name="password"
-              label={<span style={{ fontWeight: 600, color: '#374151', fontSize: '0.875rem' }}>Password</span>}
-              rules={[{ required: true, message: 'Please enter your password.' }]}
-            >
-              <Input.Password
-                prefix={<LockOutlined style={{ color: '#94a3b8' }} />}
-                placeholder="Enter your password"
-                autoComplete="current-password"
-                style={{ borderRadius: 8, height: 44 }}
-              />
-            </Form.Item>
-
-            <Form.Item style={{ marginTop: 8, marginBottom: 24 }}>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={loading}
-                style={{
-                  height: 46,
-                  borderRadius: 8,
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
-                  border: 'none',
-                  boxShadow: '0 4px 16px rgba(14,165,233,0.4)',
-                }}
-              >
-                {loading ? 'Signing in…' : 'Sign In →'}
-              </Button>
-            </Form.Item>
-          </Form>
-
-          {/* Visitor Portal Links */}
-          <div style={{
-            borderTop: '1px solid #e2e8f0',
-            paddingTop: 24,
-            textAlign: 'center',
-          }}>
-            <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: 14 }}>
-              Not an officer? Submit a visitor request
-            </p>
-            <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-              <Link
-                to="/visitor-request"
-                style={{
-                  color: '#0ea5e9',
-                  fontWeight: 700,
-                  fontSize: '0.875rem',
-                  textDecoration: 'none',
-                  padding: '6px 16px',
-                  border: '1px solid rgba(14,165,233,0.3)',
-                  borderRadius: 8,
-                  transition: 'all 0.18s',
-                }}
-              >
-                Internal Request
-              </Link>
-              <Link
-                to="/external-visitor-request"
-                style={{
-                  color: '#0ea5e9',
-                  fontWeight: 700,
-                  fontSize: '0.875rem',
-                  textDecoration: 'none',
-                  padding: '6px 16px',
-                  border: '1px solid rgba(14,165,233,0.3)',
-                  borderRadius: 8,
-                  transition: 'all 0.18s',
-                }}
-              >
-                External Portal
-              </Link>
-            </div>
-          </div>
-
-          <p style={{ color: '#cbd5e1', fontSize: '0.75rem', textAlign: 'center', marginTop: 32 }}>
-            Port Pass Pro — Enterprise Security Platform
-          </p>
+        <div className="login-divider">
+          <span className="login-divider-line" />
+          <span className="login-divider-text">OR</span>
+          <span className="login-divider-line" />
         </div>
+
+        <Link to="/visitor-request" className="visitor-link">
+          <LinkOutlined style={{ marginRight: 6 }} />
+          Submit an internal visitor request
+        </Link>
       </div>
 
-      {/* Responsive: hide left panel on small screens */}
+      {/* CSS Stylesheet embedded for perfect modularity */}
       <style>{`
-        @media (max-width: 768px) {
-          .login-left-panel { display: none !important; }
+        :root {
+          --glass-bg: rgba(255, 255, 255, 0.75);
+          --glass-blur: 32px;
+          --glass-border: rgba(255, 255, 255, 0.85);
+          --spatial-shadow: 0 32px 64px rgba(20, 60, 100, 0.22), inset 0 2px 2px rgba(255, 255, 255, 1);
+          
+          --primary-blue: #2563eb;
+          --primary-blue-hover: #1d4ed8;
+          --primary-blue-light: #3b82f6;
+          
+          --text-dark: #0f172a;
+          --text-muted: #64748b;
+          
+          --input-height: 60px;
+          --btn-height: 60px;
+          --radius-full: 999px;
+        }
+
+        /* Environment */
+        .spatial-env {
+          position: relative;
+          min-height: 100vh;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          padding: 24px 16px;
+          font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        .spatial-background {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          background: url('/background.png') center/cover no-repeat;
+        }
+
+        /* Card */
+        .login-card-spatial {
+          position: relative;
+          z-index: 10;
+          width: 100%;
+          max-width: 440px;
+          padding: 48px 44px;
+          text-align: center;
+          
+          background: var(--glass-bg);
+          backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+          -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+          border: 1px solid var(--glass-border);
+          border-radius: 28px;
+          box-shadow: var(--spatial-shadow);
+          
+          animation: cardEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @keyframes cardEnter {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Logo */
+        .logo-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .logo-halo {
+          width: 220px;
+          height: 160px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+            inset 0 1px 0 rgba(255, 255, 255, 0.55);
+          margin-bottom: 24px;
+        }
+
+        .logo {
+          width: 350px;
+          max-width: 120%;
+          height: auto;
+          object-fit: contain;
+        }
+
+        /* Typography */
+        .login-title {
+          margin: 0;
+          color: #0a509b;
+          font-weight: 700;
+          font-size: 30px;
+          line-height: 1.15;
+          letter-spacing: -0.5px;
+        }
+
+        .login-subtitle {
+          margin-top: 8px;
+          margin-bottom: 28px;
+          color: #5F7895;
+          font-size: 15px;
+          font-weight: 400;
+        }
+
+        /* Form */
+        .login-form {
+          width: 100%;
+        }
+
+        /* Inputs */
+        .spatial-input.ant-input,
+        .spatial-input.ant-input-affix-wrapper {
+          height: var(--input-height) !important;
+          border-radius: var(--radius-full) !important;
+          background: rgba(241, 245, 249, 0.8) !important;
+          border: 1px solid rgba(226, 232, 240, 0.8) !important;
+          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+          padding: 0 20px !important;
+          font-size: 1rem !important;
+          transition: all 0.2s ease !important;
+          color: #183B5D !important;
+        }
+
+        .spatial-input.ant-input-affix-wrapper input.ant-input {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          height: 100% !important;
+          padding-left: 0 !important;
+          color: #183B5D !important;
+        }
+
+        .spatial-input.ant-input:focus,
+        .spatial-input.ant-input-affix-wrapper-focused {
+          background: rgba(255, 255, 255, 1) !important;
+          border-color: var(--primary-blue-light) !important;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        }
+
+        .input-icon {
+          color: #315D89 !important;
+          font-size: 1.15rem !important;
+          margin-right: 12px !important;
+        }
+
+        .spatial-input ::placeholder {
+          color: #7188A0 !important;
+        }
+
+        .spatial-input .ant-input-suffix .anticon {
+          color: var(--text-muted) !important;
+        }
+
+        /* Button */
+        .spatial-btn.ant-btn {
+          height: var(--btn-height) !important;
+          border-radius: var(--radius-full) !important;
+          font-size: 1.1rem !important;
+          font-weight: 600 !important;
+          background: linear-gradient(135deg, #3D8EF7, #315FE5) !important;
+          border: none !important;
+          box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35) !important;
+          color: #FFFFFF !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 10px !important;
+          transition: all 0.2s ease !important;
+        }
+
+        .spatial-btn.ant-btn:hover:not(:disabled) {
+          background: linear-gradient(135deg, #60a5fa 0%, var(--primary-blue-hover) 100%) !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 12px 32px rgba(37, 99, 235, 0.45) !important;
+        }
+
+        .spatial-btn.ant-btn:active:not(:disabled) {
+          transform: scale(0.98) !important;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+        }
+
+        /* Divider */
+        .login-divider {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin: 28px 0 20px;
+        }
+        
+        .login-divider-line {
+          flex: 1;
+          height: 1px;
+          background: rgba(15, 23, 42, 0.12);
+        }
+        
+        .login-divider-text {
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: rgba(15, 23, 42, 0.4);
+          letter-spacing: 1.5px;
+        }
+
+        /* Visitor Link */
+        .visitor-link {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #1769E8;
+          font-size: 0.95rem;
+          font-weight: 500;
+          text-decoration: none;
+          padding: 8px 16px;
+          border-radius: 12px;
+          transition: all 0.2s ease;
+        }
+        
+        .visitor-link:hover {
+          background: rgba(37, 99, 235, 0.08);
+          text-decoration: none;
+        }
+
+        /* Surrounding Tags */
+        .spatial-tag-tl {
+          position: absolute;
+          top: 48px;
+          left: 60px;
+          z-index: 5;
+        }
+        
+        .spatial-tag-tr {
+          position: absolute;
+          top: 36px;
+          right: 48px;
+          z-index: 5;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          background: rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: var(--radius-full);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .spatial-theme-divider {
+          color: rgba(255, 255, 255, 0.3);
+          font-size: 14px;
+        }
+
+        .spatial-tag-bl {
+          position: absolute;
+          bottom: 48px;
+          left: 60px;
+          z-index: 5;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: #ffffff;
+          font-weight: 500;
+          font-size: 0.95rem;
+        }
+        
+        .spatial-tag-br {
+          position: absolute;
+          bottom: 48px;
+          right: 60px;
+          z-index: 5;
+        }
+
+        .spatial-tag-bar {
+          width: 32px;
+          height: 2px;
+          background: var(--primary-blue);
+          border-radius: 2px;
+          margin-bottom: 12px;
+        }
+
+        .spatial-tag-tl p, .spatial-tag-br p {
+          margin: 0;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: rgba(15, 23, 42, 0.65);
+          line-height: 1.5;
+        }
+
+        /* Form Error Message */
+        .login-card-spatial .ant-form-item-explain-error {
+          text-align: left;
+          font-size: 0.85rem;
+          color: #ef4444;
+          margin-top: 6px;
+          padding-left: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+          .spatial-tag-tl, .spatial-tag-br, .spatial-tag-bl, .spatial-tag-tr {
+            display: none;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .login-card-spatial {
+            padding: 40px 24px;
+            max-width: 90%;
+            border-radius: 24px;
+          }
+          
+          .login-title {
+            font-size: 1.8rem;
+          }
+          
+          .spatial-input.ant-input,
+          .spatial-input.ant-input-affix-wrapper,
+          .spatial-btn.ant-btn {
+            height: 52px !important;
+          }
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+          .login-card-spatial {
+            animation: none;
+          }
+          .login-logo-glow {
+            animation: none;
+          }
         }
       `}</style>
     </div>

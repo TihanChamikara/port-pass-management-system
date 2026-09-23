@@ -248,7 +248,24 @@ class PublicRequestValidator:
             )
 
         # Valid zones for this system — must match frontend dropdown options
-        valid_zones = {"zone_1", "zone_2", "zone_3", "zone_4", "cargo", "office"}
+        valid_zones = {
+            # Legacy zone identifiers (backward compatibility)
+            "zone_1", "zone_2", "zone_3", "zone_4", "cargo", "office",
+            # New visit area values (from CWIT Visitor Management Excel spec)
+            "Onboard Vessel",
+            "Wharf Area / Quay Side",
+            "Yard Area",
+            "Gate Complex",
+            "Container Inspection Area",
+            "Empty Container Yard",
+            "Reefer Monitoring Area",
+            "POB",
+            "Pass Office & Security Building",
+            "Wharf Building",
+            "OHS Building",
+            "DG Station",
+            "Workshop / Maintenance Facility",
+        }
         invalid_zones = set(zones) - valid_zones
 
         if invalid_zones:
