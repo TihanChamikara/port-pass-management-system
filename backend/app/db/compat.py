@@ -23,6 +23,14 @@ def ensure_users_schema(engine: Engine) -> None:
             connection.execute(text(f"ALTER TABLE users ADD COLUMN created_at {time_type} DEFAULT CURRENT_TIMESTAMP"))
         if "department_id" not in columns:
             connection.execute(text("ALTER TABLE users ADD COLUMN department_id INTEGER"))
+        if "represented_hod_id" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN represented_hod_id INTEGER"))
+
+        if not is_sqlite:
+            try:
+                connection.execute(text("ALTER TYPE userrole ADD VALUE IF NOT EXISTS 'department_coordinator'"))
+            except Exception:
+                pass
 
         if "created_at" in columns:
             try:

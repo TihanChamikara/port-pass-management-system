@@ -12,6 +12,7 @@
     pass_officer
     PassOfficer@123
 
+    coord_it / Coord@123
 
   Department Managers:
 

@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 .venv/
 venv/
 __pycache__/
@@ -14,3 +14,4 @@ coverage/
 .idea/
 .vscode/
 *.log
+~$*

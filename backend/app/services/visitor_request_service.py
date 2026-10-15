@@ -135,7 +135,7 @@ def get_requests_ready_for_pass_generation(db: Session, page: int = 1, page_size
         VisitorRequest.status == RequestStatus.operations_approved
     )
     total = query.count()
-    items = query.order_by(VisitorRequest.created_at.asc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = query.order_by(VisitorRequest.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
     return items, total
 
 

@@ -21,6 +21,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Your account has been deactivated. Please contact an administrator.",
+        )
     return user
 
 
@@ -74,3 +79,9 @@ def require_staff_role() -> callable:
         UserRole.pass_officer,
         UserRole.security_gate_officer,
     ])
+
+
+def require_coordinator() -> callable:
+    """Department Coordinator: Submits internal visitor requests on behalf of their department."""
+    return require_roles([UserRole.department_coordinator, UserRole.admin])
+

@@ -31,10 +31,23 @@ const VisitorRequestPage = () => {
 
   const next = async () => {
     try {
+      if (current === 0) {
+        await form.validateFields(['requester_name', 'line_department']);
+      } else if (current === 1) {
+        await form.validateFields([
+          'visitor_purpose',
+          'visitor_category',
+          'visit_area',
+          'visit_date',
+          'expected_time_in',
+          'expected_time_out',
+        ]);
+      } else if (current === 2) {
+        await form.validateFields(['visitors']);
+      }
       const stepValues = form.getFieldsValue();
       setFormValues(prev => ({ ...prev, ...stepValues }));
-      await form.validateFields();
-      setCurrent(current + 1);
+      setCurrent(c => Math.min(c + 1, steps.length - 1));
     } catch (error) {
       console.error('Validation failed:', error);
     }
@@ -43,15 +56,7 @@ const VisitorRequestPage = () => {
   const prev = () => {
     const stepValues = form.getFieldsValue();
     setFormValues(prev => ({ ...prev, ...stepValues }));
-    setCurrent(current - 1);
-  };
-
-  const handleFormFinish = () => {
-    if (current === steps.length - 1) {
-      onFinish();
-    } else {
-      next();
-    }
+    setCurrent(c => Math.max(c - 1, 0));
   };
 
   const onFinish = async () => {
@@ -241,7 +246,7 @@ const VisitorRequestPage = () => {
       content: (
         <>
           <Title level={4} style={{ color: '#1a3c6e' }}>Visitor Details</Title>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>Add up to 4 visitors for this request.</Text>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>Add visitors for this request (no limit).</Text>
           <Form.List name="visitors">
             {(fields, { add, remove }) => (
               <>
@@ -262,7 +267,7 @@ const VisitorRequestPage = () => {
                   </Card>
                 ))}
                 <Form.Item>
-                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} disabled={fields.length >= 4}>
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                     Add Visitor
                   </Button>
                 </Form.Item>
@@ -277,7 +282,7 @@ const VisitorRequestPage = () => {
       content: (
         <>
           <Title level={4} style={{ color: '#1a3c6e' }}>Vehicle Details</Title>
-          <Paragraph type="secondary" style={{ marginBottom: 16 }}>Add up to 4 vehicles for this request. (Optional)</Paragraph>
+          <Paragraph type="secondary" style={{ marginBottom: 16 }}>Add vehicles for this request (optional, no limit).</Paragraph>
           <Form.List name="vehicles">
             {(fields, { add, remove }) => (
               <>
@@ -289,7 +294,7 @@ const VisitorRequestPage = () => {
                   </Card>
                 ))}
                 <Form.Item>
-                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} disabled={fields.length >= 4}>
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                     Add Vehicle
                   </Button>
                 </Form.Item>
@@ -332,8 +337,12 @@ const VisitorRequestPage = () => {
           <Form
             form={form}
             layout="vertical"
-            onFinish={handleFormFinish}
             preserve={true}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+              }
+            }}
             initialValues={{ visitors: [{}], vehicles: [{}] }}
           >
             <div className="steps-content">{steps[current].content}</div>
@@ -342,7 +351,11 @@ const VisitorRequestPage = () => {
 
             <div className="steps-action" style={{ display: 'flex', justifyContent: 'space-between' }}>
               {current > 0 ? (
-                <Button onClick={() => prev()}>
+                <Button
+                  key="btn-prev"
+                  htmlType="button"
+                  onClick={() => prev()}
+                >
                   Previous
                 </Button>
               ) : (
@@ -350,11 +363,22 @@ const VisitorRequestPage = () => {
               )}
 
               {current < steps.length - 1 ? (
-                <Button type="primary" onClick={() => next()}>
+                <Button
+                  key="btn-next"
+                  type="primary"
+                  htmlType="button"
+                  onClick={() => next()}
+                >
                   Next Step
                 </Button>
               ) : (
-                <Button type="primary" htmlType="submit" loading={loading}>
+                <Button
+                  key="btn-submit"
+                  type="primary"
+                  htmlType="button"
+                  loading={loading}
+                  onClick={onFinish}
+                >
                   Submit Request
                 </Button>
               )}

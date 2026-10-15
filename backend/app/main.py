@@ -6,7 +6,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import logging
 
-from app.api.routes import alerts, audit_logs, auth, dashboard, departments, groups, passes_v2, reports, security, users, zones, visitor_requests_v2, notifications, system_health
+from app.api.routes import alerts, audit_logs, auth, dashboard, departments, groups, passes_v2, reports, security, users, zones, visitor_requests_v2, notifications, system_health, internal_requests
+from app.api import external_auth
 from app.core.security import get_password_hash
 from app.core.settings import get_settings
 from app.db.database import Base, SessionLocal, engine
@@ -40,6 +41,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api")
+app.include_router(external_auth.router,    prefix="/api/external-auth",    tags=["External Auth"])
 app.include_router(passes_v2.router, prefix="/api")
 app.include_router(groups.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
@@ -54,6 +56,7 @@ app.include_router(visitor_requests_v2.router)  # NEW: Formal workflow state mac
 app.include_router(notifications.router, prefix="/api")
 app.include_router(system_health.router)  # HA/DR System Health Dashboard
 app.include_router(departments.router)  # Public: GET /api/departments
+app.include_router(internal_requests.router)  # Coordinator: Internal visitor request submission
 
 
 
@@ -162,6 +165,18 @@ def seed_users() -> None:
                     role=UserRole.department_manager,
                     department_id=dept.id if dept else None,
                 ))
+        # Seed a sample Department Coordinator account (for IT department)
+        if not db.query(User).filter(User.username == "coord_it").first():
+            it_dept = db.query(Department).filter(Department.name == "IT").first()
+            it_mgr = db.query(User).filter(User.username == "dm_it").first()
+            db.add(User(
+                username="coord_it",
+                full_name="IT Coordinator",
+                password_hash=get_password_hash("Coord@123"),
+                role=UserRole.department_coordinator,
+                department_id=it_dept.id if it_dept else None,
+                represented_hod_id=it_mgr.id if it_mgr else None,
+            ))
 
         db.commit()
     finally:

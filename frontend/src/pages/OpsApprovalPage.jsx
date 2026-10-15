@@ -801,7 +801,7 @@ const OpsApprovalPage = () => {
                   <Text strong>Visitor Type:</Text>
                   <Select
                     value={visitorType}
-                    onChange={(v) => handleSetVisitorType(v, v === 'vip' ? 'lmv1' : null)}
+                    onChange={(v) => handleSetVisitorType(v, v === 'vip' ? 'lmv2' : null)}
                     style={{ width: 140 }}
                     options={[
                       { label: '👤 Normal', value: 'normal' },
@@ -814,13 +814,13 @@ const OpsApprovalPage = () => {
                   <Space>
                     <Text strong>LMV Gate Access:</Text>
                     <Select
-                      value={vipLmvAccess || 'lmv1'}
+                      value={vipLmvAccess || 'lmv2'}
                       onChange={(v) => handleSetVisitorType('vip', v)}
                       style={{ width: 180 }}
                       options={[
-                        { label: '🚗 LMV1', value: 'lmv1' },
+                       // { label: '🚗 LMV1', value: 'lmv1' },
                         { label: '🚗 LMV2', value: 'lmv2' },
-                        { label: '🚗 Both (LMV1 & LMV2)', value: 'both' },
+                       // { label: '🚗 Both (LMV1 & LMV2)', value: 'both' },
                       ]}
                     />
                   </Space>

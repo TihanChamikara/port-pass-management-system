@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Enum as SqlEnum, String, DateTime, func, Integer
+from sqlalchemy import Enum as SqlEnum, String, DateTime, func, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
@@ -14,6 +14,7 @@ class UserRole(str, Enum):
     security_gate_officer = "security_gate_officer"  # Verifies entry/exit via QR
     public_requester = "public_requester"            # Public visitor (no login)
     department_manager = "department_manager"        # Manages department approvals
+    department_coordinator = "department_coordinator" # Submits internal visitor requests
 
 
 class User(Base):
@@ -24,6 +25,7 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(150))
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[UserRole] = mapped_column(SqlEnum(UserRole), default=UserRole.operations_officer)
-    department_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    department_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("departments.id"), nullable=True)
+    represented_hod_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, server_default=func.now())

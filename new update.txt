@@ -1,0 +1,878 @@
+Modify the existing **Port Pass Pro Visitor Pass Management System** to implement a **Department Coordinator-based internal visitor request workflow**.
+
+## IMPORTANT — READ THE EXISTING SYSTEM FIRST
+
+Before changing anything:
+
+1. Analyze the complete existing project structure.
+2. Review the current:
+
+   * React/Vite frontend
+   * FastAPI backend
+   * SQLAlchemy models
+   * Authentication and authorization system
+   * User/role models
+   * Admin UI
+   * Department/HOD data structure
+   * Visitor Request models and APIs
+   * SCR workflow
+   * Audit logging
+   * Existing internal visitor request page
+   * Existing external visitor request workflow
+3. Identify the exact files, components, API endpoints, schemas and database models that need modification.
+4. Reuse the existing architecture, components, APIs and styling wherever possible.
+5. Do NOT rebuild the application from scratch.
+
+The goal is to integrate the new workflow into the existing Port Pass Pro system without breaking existing functionality.
+
+---
+
+# 1. BUSINESS REQUIREMENT
+
+There are **10 line departments** in Phase 1.
+
+Each department has:
+
+* Exactly **one Department Coordinator**
+* One associated **HOD**
+* The Coordinator submits internal visitor requests **on behalf of the HOD**
+* The HOD does **NOT** approve individual visitor requests.
+
+The Department Coordinator is the authorized data-entry/requesting user.
+
+The HOD is only the **represented department authority** associated with that Coordinator account.
+
+### Important workflow rule
+
+**Coordinator → SCR Review**
+
+There is **NO**
+
+**Coordinator → HOD Approval → SCR**
+
+workflow.
+
+Do not create an HOD approval step.
+
+---
+
+# 2. DEPARTMENT COORDINATOR ROLE
+
+Add or adapt the existing:
+
+`DEPARTMENT_COORDINATOR`
+
+role within the current authentication and authorization system.
+
+Do not create a completely separate authentication mechanism.
+
+The Coordinator must log in using the existing secure login system.
+
+Coordinator accounts are **NOT self-registered**.
+
+They are created/configured by an **Administrator through the existing Admin UI**.
+
+---
+
+# 3. ADMIN UI — COORDINATOR ACCOUNT MANAGEMENT
+
+Modify the existing **Admin user/account management interface** rather than creating an unrelated administration system.
+
+The Admin must be able to create or configure a Department Coordinator account.
+
+For a Coordinator account, the Admin should be able to define:
+
+* Username
+* Password / password management according to the existing authentication system
+* Role = `DEPARTMENT_COORDINATOR`
+* Department
+* Represented HOD
+
+The Admin should be able to select the correct:
+
+`Department Coordinator → Department → HOD`
+
+relationship.
+
+### Example
+
+Department:
+
+`IT`
+
+Coordinator:
+
+`IT Coordinator`
+
+Represented HOD:
+
+`Head of IT`
+
+The Coordinator should then always be associated with that IT department and HOD.
+
+---
+
+# 4. ACCOUNT CONFIGURATION RULES
+
+There must be exactly **one active Department Coordinator per department** for the Phase 1 departments.
+
+Phase 1 departments:
+
+1. HR & Admin
+2. Commercial & Marketing
+3. IT
+4. Engineering
+5. Operations
+6. Security
+7. Project Team
+8. HSE Dept
+9. Techno Commercial
+10. Finance
+
+The Admin UI should prevent invalid configurations such as:
+
+* One Coordinator assigned to multiple departments
+* Multiple active Coordinators assigned to the same department, if the existing business rules require exactly one
+* Coordinator assigned to a department without its required HOD
+* Coordinator creating requests for another department
+
+Use the existing database constraints/architecture where possible.
+
+If necessary, add appropriate database constraints or validation.
+
+---
+
+# 5. COORDINATOR LOGIN
+
+When a Department Coordinator logs in:
+
+1. Authenticate through the existing authentication system.
+2. Retrieve the authenticated user's ID.
+3. Retrieve the Coordinator's assigned department.
+4. Retrieve the represented HOD.
+5. Redirect/show the Coordinator's internal visitor request dashboard.
+
+Do not ask the Coordinator to provide these details manually.
+
+---
+
+# 6. COORDINATOR DASHBOARD
+
+After login, the Coordinator should see a **simple dashboard focused primarily on creating internal visitor requests**.
+
+Do not create a complicated dashboard unnecessarily.
+
+The main content should be the existing internal visitor request form.
+
+The dashboard may contain a small identity/header section showing:
+
+* Coordinator Name
+* Department
+* Represented HOD
+
+These must be **read-only**.
+
+Example:
+
+`Coordinator: Nimal Perera`
+
+`Department: IT`
+
+`Representing: Head of IT`
+
+The Coordinator must NOT be able to edit these values from the request form.
+
+---
+
+# 7. REMOVE MANUAL IDENTITY INPUTS FROM THE FORM
+
+The internal visitor request form must NOT ask the Coordinator to enter:
+
+* Coordinator/requester name
+* Department
+* HOD name
+* HOD selection
+* Any equivalent identity fields
+
+These values must come from the authenticated account.
+
+For example, DO NOT implement:
+
+```text
+Requester Name: [input]
+Department: [select]
+HOD: [select]
+```
+
+Instead, the UI should automatically know:
+
+```text
+Logged-in Coordinator
+        ↓
+Assigned Department
+        ↓
+Represented HOD
+```
+
+and submit the visitor request without requiring those fields from the user.
+
+---
+
+# 8. EXISTING INTERNAL REQUEST FORM
+
+Reuse the existing internal visitor request form/component wherever possible.
+
+Do not unnecessarily redesign or remove existing visitor-request fields.
+
+Retain all required fields and validation rules according to:
+
+* Current Port Pass Pro requirements
+* Existing internal visitor request implementation
+* Approved/current spreadsheet requirements
+
+Before changing fields, compare the current JSX form against the existing approved requirements.
+
+Only remove fields that are specifically unnecessary because identity is now obtained from authentication.
+
+---
+
+# 9. BACKEND IDENTITY ASSIGNMENT
+
+This is a critical security requirement.
+
+The backend must obtain the authenticated user's identity from the existing secure authentication mechanism.
+
+When the Coordinator creates an internal visitor request, the backend must automatically determine:
+
+```text
+authenticated_user_id
+        ↓
+Coordinator account
+        ↓
+department_id
+        ↓
+represented_hod_id
+```
+
+The backend must assign these values itself.
+
+For example:
+
+```python
+request.requester_id = current_user.id
+request.department_id = current_user.department_id
+request.hod_id = current_user.hod_id
+```
+
+Use the actual model/property names from the existing codebase rather than blindly copying these names.
+
+---
+
+# 10. NEVER TRUST CLIENT IDENTITY DATA
+
+Do NOT treat client-submitted values as authoritative for:
+
+* User ID
+* Coordinator ID
+* Department ID
+* HOD ID
+* Requesting department
+* Represented HOD
+
+Even if the frontend sends these values, the backend must ignore/reject them as authoritative identity information.
+
+The secure source must be the authenticated user/session/token.
+
+A malicious Coordinator must not be able to modify a request payload such as:
+
+```json
+{
+  "department_id": 5,
+  "hod_id": 8
+}
+```
+
+to create a request for another department.
+
+The backend must derive the correct values from the logged-in account.
+
+---
+
+# 11. AUTHORIZATION BOUNDARY
+
+A `DEPARTMENT_COORDINATOR` may create internal visitor requests **only for their assigned department and represented HOD**.
+
+For example:
+
+```text
+IT Coordinator
+      ↓
+IT requests only
+```
+
+The IT Coordinator must not be able to create:
+
+```text
+Finance request
+HR request
+Engineering request
+another department's request
+```
+
+by modifying frontend fields or API payloads.
+
+Enforce this on the backend.
+
+Frontend restrictions alone are NOT sufficient.
+
+---
+
+# 12. INTERNAL REQUEST WORKFLOW
+
+Implement the following workflow:
+
+```text
+ADMIN
+  │
+  │ creates/configures Coordinator account
+  ▼
+DEPARTMENT COORDINATOR
+  │
+  │ logs in
+  ▼
+COORDINATOR DASHBOARD
+  │
+  │ internal visitor request form
+  │ identity automatically determined
+  ▼
+REQUEST CREATED
+  │
+  ▼
+SCR REVIEW / VISIBILITY
+  │
+  ▼
+EXISTING SCR WORKFLOW
+  │
+  ▼
+EXISTING PASS ISSUANCE PROCESS
+```
+
+There is NO HOD approval stage.
+
+Do not introduce:
+
+```text
+Coordinator
+    ↓
+HOD
+    ↓
+Approval
+    ↓
+SCR
+```
+
+---
+
+# 13. SCR FUNCTIONALITY
+
+Preserve the existing SCR functionality.
+
+All internal visitor requests must continue to become visible to the **Security Control Room (SCR)** according to the existing system workflow.
+
+Do not bypass SCR.
+
+Do not create a separate Coordinator-only approval process.
+
+Do not remove existing SCR review, visibility, validation, classification or downstream processing.
+
+---
+
+# 14. REQUEST STATUS
+
+Preserve the existing request status architecture.
+
+Do not create unnecessary new statuses if the current statuses already support the required workflow.
+
+The new Coordinator flow should transition directly into the existing appropriate SCR review stage.
+
+For example, if the current system uses statuses such as:
+
+```text
+draft
+pending_department_approval
+pending_approval
+issued
+```
+
+analyze the existing implementation and determine the correct status transition for Coordinator-created requests.
+
+Do not leave Coordinator requests waiting for an HOD approval that no longer exists.
+
+Modify status logic only where necessary.
+
+---
+
+# 15. AUDIT LOGGING
+
+Preserve and extend the existing audit logging.
+
+When a Coordinator creates an internal visitor request, the system should retain the authenticated user's identity in the audit trail.
+
+The audit record should allow the system to determine:
+
+* Which Coordinator created the request
+* Which department they represented
+* Which HOD they represented
+* When the request was created
+* Existing request/action information
+
+Use the existing audit-log architecture.
+
+Do not create a separate unrelated audit system.
+
+---
+
+# 16. DATABASE / SQLALCHEMY
+
+Review the existing SQLAlchemy models first.
+
+Determine whether the existing User model already supports:
+
+* role
+* department
+* HOD
+* employee/requester relationships
+
+If appropriate, reuse the existing relationships.
+
+If the current schema does not support the required Coordinator → Department → HOD relationship, modify the models minimally.
+
+Possible structure:
+
+```text
+User
+ ├── role
+ ├── department_id
+ └── hod_id
+```
+
+Use the actual existing architecture if a better relationship already exists.
+
+Ensure foreign keys and relationships are correct.
+
+Add database migration(s) where necessary.
+
+Do not delete existing production data.
+
+Do not recreate the database.
+
+---
+
+# 17. ADMIN CONFIGURATION DATA
+
+The Admin should be able to configure the 10 Coordinator accounts through the existing Admin UI.
+
+The implementation should support:
+
+```text
+Department
+      │
+      ├── HOD
+      │
+      └── Department Coordinator
+```
+
+The Admin controls the association.
+
+The Coordinator cannot change their own department/HOD assignment.
+
+If a Coordinator needs to move to another department, the change must be performed by an authorized Admin through the Admin UI.
+
+---
+
+# 18. FRONTEND UI
+
+Preserve the existing **Port Pass Pro Spatial UI design language**.
+
+Do not replace the application's visual identity.
+
+Maintain:
+
+* Existing color palette
+* Glassmorphism/spatial styling
+* Existing typography
+* Existing cards
+* Existing buttons
+* Existing form components
+* Existing responsive behavior
+* Existing navigation patterns
+
+The Coordinator dashboard should feel like a natural part of the existing Port Pass Pro application.
+
+Keep the interface simple rather than adding unnecessary dashboard widgets.
+
+---
+
+# 19. EXISTING ADMIN UI
+
+IMPORTANT:
+
+Do NOT create a completely separate "Coordinator Management System".
+
+Use and extend the **existing Admin UI/user management section**.
+
+Add whatever fields/actions are necessary to support:
+
+```text
+Role
+Department
+Represented HOD
+```
+
+when configuring a Department Coordinator.
+
+The Admin should be able to see the Coordinator's assignment clearly.
+
+Example:
+
+```text
+User
+────────────────────────
+Username: it.coordinator
+Role: DEPARTMENT_COORDINATOR
+Department: IT
+Represented HOD: Head of IT
+Status: Active
+```
+
+Use the existing Admin UI's design and components.
+
+---
+
+# 20. HOD UI
+
+Do NOT create an HOD approval dashboard.
+
+Do NOT create:
+
+* HOD request inbox
+* HOD approval page
+* HOD reject button
+* HOD request review workflow
+* HOD approval status
+
+The HOD is represented as the department authority associated with the Coordinator account.
+
+The Coordinator is the authorized person who enters/submits the request.
+
+---
+
+# 21. EXTERNAL VISITOR WORKFLOW
+
+Do NOT modify the existing external visitor request workflow unless a change is absolutely required by shared infrastructure.
+
+The external workflow must continue to work exactly as currently designed.
+
+Verify that changes to:
+
+* User roles
+* Request creation
+* Department relationships
+* Status transitions
+* APIs
+* authentication
+
+do not break external visitor requests.
+
+---
+
+# 22. API / SCHEMA CHANGES
+
+Review existing:
+
+* Pydantic schemas
+* FastAPI endpoints
+* dependency injection
+* authentication dependencies
+* authorization dependencies
+
+Modify them minimally.
+
+If the existing endpoint accepts identity fields from the frontend, refactor it so authoritative identity is derived from the authenticated user.
+
+Example conceptual behavior:
+
+```text
+POST /internal-visitor-request
+
+Authentication:
+    current_user
+
+Backend:
+    verify role == DEPARTMENT_COORDINATOR
+    get current_user.department_id
+    get current_user.hod_id
+    create request
+    assign authenticated user
+    send request to existing SCR stage
+```
+
+Use the project's actual endpoint names and architecture.
+
+---
+
+# 23. SECURITY TESTING
+
+Test authorization boundaries.
+
+At minimum verify:
+
+### Test 1 — Valid Coordinator
+
+```text
+IT Coordinator
+→ Login
+→ Internal request form
+→ Submit
+→ Request assigned to IT
+→ Represented HOD automatically assigned
+→ SCR can see request
+```
+
+### Test 2 — Client payload manipulation
+
+Attempt to submit:
+
+```json
+{
+  "department_id": "FINANCE_ID",
+  "hod_id": "FINANCE_HOD_ID"
+}
+```
+
+while authenticated as IT Coordinator.
+
+Expected result:
+
+```text
+Request remains associated with IT
+```
+
+or the request is rejected according to the application's security design.
+
+It must NEVER become a Finance request.
+
+### Test 3 — Unauthorized role
+
+A normal user must not be able to access the Coordinator dashboard/API.
+
+### Test 4 — Coordinator account
+
+Verify the Coordinator cannot modify their own:
+
+* department
+* HOD
+* role
+
+through normal user functionality.
+
+### Test 5 — SCR visibility
+
+Create a Coordinator request and verify it reaches the existing SCR workflow.
+
+### Test 6 — External workflow
+
+Verify existing external visitor requests continue working.
+
+---
+
+# 24. DATABASE MIGRATION
+
+If model/schema changes are required:
+
+1. Create the appropriate migration using the project's existing migration system.
+2. Do not manually destroy/recreate the database.
+3. Preserve existing records.
+4. Ensure existing users and visitor requests remain valid.
+5. Provide any required data migration/default values.
+6. Verify migration up/down behavior where supported.
+
+---
+
+# 25. IMPLEMENTATION PROCESS
+
+Follow this order:
+
+### Phase 1 — Analysis
+
+Identify:
+
+* Existing User model
+* Existing Role enum/constants
+* Existing Department model
+* Existing HOD representation
+* Existing internal request model
+* Existing request API
+* Existing authentication dependency
+* Existing Admin user-management page
+* Existing Coordinator/department-related components
+* Existing SCR workflow
+* Existing audit logging
+* Existing migration system
+
+First report the exact files/models that will be changed.
+
+### Phase 2 — Backend
+
+Implement:
+
+* Role support
+* Coordinator → Department mapping
+* Coordinator → HOD mapping
+* Secure backend identity assignment
+* Authorization checks
+* Correct internal request status transition
+* Audit logging
+* Database migration
+
+### Phase 3 — Admin UI
+
+Modify the existing Admin UI so an Admin can:
+
+* Create Coordinator accounts
+* Assign `DEPARTMENT_COORDINATOR`
+* Assign exactly one department
+* Assign represented HOD
+* Manage/update the Coordinator account
+
+### Phase 4 — Coordinator UI
+
+Modify/create the Coordinator dashboard using existing components.
+
+Display:
+
+```text
+Coordinator Name
+Department
+Represented HOD
+```
+
+as read-only identity information.
+
+Display the existing internal visitor request form directly.
+
+### Phase 5 — Testing
+
+Test:
+
+* Login
+* Role authorization
+* Admin-created Coordinator account
+* Automatic identity mapping
+* Request creation
+* Department isolation
+* HOD mapping
+* SCR visibility
+* Audit logs
+* Existing external workflow
+* Responsive UI
+
+---
+
+# 26. DO NOT DO THESE THINGS
+
+Do NOT:
+
+* Rebuild the entire application
+* Create a new authentication system
+* Add HOD approval
+* Add an HOD approval page
+* Ask the Coordinator to enter their name
+* Ask the Coordinator to select their department
+* Ask the Coordinator to select their HOD
+* Trust client-submitted department/HOD/user IDs
+* Allow a Coordinator to submit for another department
+* Break the existing SCR workflow
+* Break external visitor requests
+* Replace the existing Spatial UI
+* Create unnecessary duplicate components
+* Create duplicate user/account management
+* Remove existing visitor-request functionality without verifying the approved requirements
+* Remove existing audit logging
+* Drop/recreate the database
+
+---
+
+# 27. FINAL EXPECTED RESULT
+
+The final system should behave like this:
+
+```text
+                    ADMIN
+                      │
+                      │ creates account
+                      ▼
+          ┌──────────────────────────┐
+          │ Department Coordinator   │
+          │ Role: DEPARTMENT_        │
+          │       COORDINATOR        │
+          └────────────┬─────────────┘
+                       │
+                       │ assigned by Admin
+                       ▼
+              ┌─────────────────┐
+              │   Department    │
+              └────────┬────────┘
+                       │
+                       ▼
+                 Represented HOD
+                       │
+                       │
+Coordinator Login ─────┘
+       │
+       ▼
+Coordinator Dashboard
+       │
+       ├── Coordinator Name [READ ONLY]
+       ├── Department [READ ONLY]
+       ├── Represented HOD [READ ONLY]
+       │
+       ▼
+Internal Visitor Request Form
+       │
+       │ Submit
+       ▼
+FastAPI
+       │
+       ├── authenticated user
+       ├── coordinator ID
+       ├── department ID
+       └── represented HOD ID
+              ↓
+        automatically assigned
+              │
+              ▼
+        SCR Review / Visibility
+              │
+              ▼
+     Existing Pass Workflow
+```
+
+The core principle is:
+
+**Admin creates/configures the Coordinator account → Coordinator logs in → system automatically knows who they are, which department they represent and which HOD they represent → Coordinator submits the internal visitor request → request goes directly to the existing SCR workflow.**
+
+HOD approval is completely removed from the internal request path.
+
+After implementation, provide:
+
+1. Exact files modified
+2. Database models modified
+3. Migration created
+4. API endpoints modified/added
+5. Frontend components modified/added
+6. Admin UI changes
+7. Coordinator workflow changes
+8. Authorization/security changes
+9. Test results
+10. Any assumptions or remaining issues

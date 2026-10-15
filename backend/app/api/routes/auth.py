@@ -15,6 +15,12 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
 
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account has been deactivated. Please contact an administrator.",
+        )
+
     db.add(
         AuditLog(
             user_id=user.id,
@@ -39,4 +45,6 @@ def me(current_user: User = Depends(get_current_user)) -> UserMeResponse:
         username=current_user.username,
         full_name=current_user.full_name,
         role=current_user.role,
+        department_id=current_user.department_id,
+        represented_hod_id=current_user.represented_hod_id,
     )

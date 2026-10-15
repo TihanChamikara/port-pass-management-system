@@ -18,3 +18,5 @@ class UserMeResponse(BaseModel):
     username: str
     full_name: str
     role: UserRole
+    department_id: int | None = None
+    represented_hod_id: int | None = None

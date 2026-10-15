@@ -13,6 +13,7 @@ const LoginPage        = React.lazy(() => import('./pages/LoginPage'));
 const DashboardPage    = React.lazy(() => import('./pages/DashboardPage'));
 const VisitorRequestPage = React.lazy(() => import('./pages/VisitorRequestPage'));
 const ExternalVisitorRequestPage = React.lazy(() => import('./pages/ExternalVisitorRequestPage'));
+const ExternalAuthPage = React.lazy(() => import('./pages/ExternalAuthPage'));
 const OpsApprovalPage  = React.lazy(() => import('./pages/OpsApprovalPage'));
 const PassIssuingPage  = React.lazy(() => import('./pages/PassIssuingPage'));
 const GateControlPage  = React.lazy(() => import('./pages/GateControlPage'));
@@ -22,11 +23,18 @@ const AuditLogsPage    = React.lazy(() => import('./pages/AuditLogsPage'));
 const PassesPage       = React.lazy(() => import('./pages/PassesPage'));
 const DeptManagerPage  = React.lazy(() => import('./pages/DeptManagerPage'));
 const SystemHealthPage = React.lazy(() => import('./pages/SystemHealthPage'));
+const CoordinatorDashboardPage = React.lazy(() => import('./pages/CoordinatorDashboardPage'));
+const AdminUsersPage = React.lazy(() => import('./pages/AdminUsersPage'));
+const DepartmentSelectionPage = React.lazy(() => import('./pages/DepartmentSelectionPage'));
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, user, loading } = useAuthStore();
   if (loading) return <div>Loading...</div>;
   if (!isAuthenticated) return <Navigate to="/login" />;
+  // Redirect coordinators away from /dashboard to their own page
+  if (user?.role === 'department_coordinator' && !allowedRoles) {
+    return <Navigate to="/coordinator-dashboard" />;
+  }
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return <Navigate to="/dashboard" />;
   }
@@ -39,7 +47,7 @@ function App() {
   const location = useLocation();
 
   // Disable dark mode on public forms so they remain clean & readable
-  const publicPages = ['/', '/visitor-request', '/external-visitor-request', '/login'];
+  const publicPages = ['/', '/department-selection', '/visitor-request', '/external-visitor-request', '/login', '/external-auth'];
   const isPublicPage = publicPages.includes(location.pathname);
   const effectiveDarkMode = isPublicPage ? false : darkMode;
 
@@ -74,8 +82,10 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/department-selection" element={<DepartmentSelectionPage />} />
           <Route path="/visitor-request" element={<VisitorRequestPage />} />
           <Route path="/external-visitor-request" element={<ExternalVisitorRequestPage />} />
+          <Route path="/external-auth" element={<ExternalAuthPage />} />
           <Route path="/login" element={<LoginPage />} />
 
           {/* Protected Routes inside MainLayout */}
@@ -157,6 +167,22 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <SystemHealthPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coordinator-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['department_coordinator', 'admin']}>
+                  <CoordinatorDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminUsersPage />
                 </ProtectedRoute>
               }
             />

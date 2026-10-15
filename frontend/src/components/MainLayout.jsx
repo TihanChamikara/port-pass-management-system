@@ -16,7 +16,8 @@ import {
   BellOutlined,
   FileProtectOutlined,
   SecurityScanOutlined,
-  HeartOutlined
+  HeartOutlined,
+  FormOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../features/authStore';
@@ -27,7 +28,13 @@ const NAV_GROUPS = [
   {
     label: 'OVERVIEW',
     items: [
-      { key: '/dashboard', icon: <DashboardOutlined />, label: 'Dashboard' }
+      { key: '/dashboard', icon: <DashboardOutlined />, label: 'Dashboard', roles: ['admin', 'operations_officer', 'pass_officer', 'security_gate_officer', 'department_manager'] }
+    ]
+  },
+  {
+    label: 'COORDINATOR',
+    items: [
+      { key: '/coordinator-dashboard', icon: <FormOutlined />, label: 'Submit Request', roles: ['department_coordinator'] },
     ]
   },
   {
@@ -55,6 +62,7 @@ const NAV_GROUPS = [
   {
     label: 'ADMINISTRATION',
     items: [
+      { key: '/users', icon: <TeamOutlined />, label: 'User Management', roles: ['admin'] },
       { key: '/audit-logs', icon: <AuditOutlined />, label: 'Audit Trail', roles: ['admin'] },
       { key: '/system-health', icon: <HeartOutlined />, label: 'System Health', roles: ['admin'] },
     ]
@@ -63,6 +71,8 @@ const NAV_GROUPS = [
 
 const PAGE_LABELS = {
   '/dashboard': 'Dashboard',
+  '/coordinator-dashboard': 'Coordinator Dashboard',
+  '/users': 'User Management',
   '/approve-requests': 'Approve Requests',
   '/dept-approvals': 'Department Approvals',
   '/issue-passes': 'Issue Passes',
@@ -80,6 +90,7 @@ const ROLE_CONFIG = {
   pass_officer:         { label: 'Pass Officer',       color: '#60a5fa' },
   security_gate_officer:{ label: 'Gate Officer',       color: '#34d399' },
   department_manager:   { label: 'Dept. Manager',      color: '#a78bfa' },
+  department_coordinator: { label: 'Dept. Coordinator', color: '#f97316' },
 };
 
 const MainLayout = () => {

@@ -40,7 +40,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import api from "../api/api";
 import { useAuthStore } from "../features/authStore";
 import { PASS_TYPES } from "../utils/passTypes";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Utility helpers
@@ -547,44 +547,18 @@ function AdminDashboard({ data, onRefresh, loading, actionFilters }) {
         actionFilters={actionFilters}
       />
 
-      {/* Pass KPI Row */}
-      <Box>
-        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, mb: 1.5, display: "block" }}>
-          Pass Statistics (Selected Range)
-        </Typography>
-        <Grid container spacing={2.5}>
-          {[
-            { title: "Passes in Range", value: data.today_total, color: "#1976D2", icon: "📅" },
-            { title: "Active Passes", value: data.active_total, color: "#F59E0B", icon: "⏳" },
-            { title: "Completed Passes", value: data.completed_total, color: "#10B981", icon: "✅" },
-          ].map((s) => (
-            <Grid item xs={12} sm={6} md={4} key={s.title}>
-              <StatCard {...s} />
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-
-      {/* Request KPI Row */}
-      <Box>
-        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, mb: 1.5, display: "block" }}>
-          Request Pipeline (All Time)
-        </Typography>
-        <Grid container spacing={2.5}>
-          {[
-            { title: "Total Requests", value: data.total_requests, color: "#6366f1", icon: "📋" },
-            { title: "Pending Review", value: data.pending_requests, color: "#f59e0b", icon: "⏳" },
-            { title: "Approved", value: data.approved_requests, color: "#10b981", icon: "✅" },
-            { title: "Rejected", value: data.rejected_requests, color: "#ef4444", icon: "❌" },
-            { title: "Currently Inside", value: data.checked_in_count, color: "#14b8a6", icon: "🏢" },
-            { title: "Checked Out", value: data.checked_out_count, color: "#64748b", icon: "🚪" },
-          ].map((s) => (
-            <Grid item xs={12} sm={6} md={4} lg={2} key={s.title}>
-              <StatCard {...s} />
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+      {/* Key Metrics */}
+      <Grid container spacing={2.5}>
+        {[
+          { title: "Active Passes", value: data.active_total, color: "#F59E0B", icon: "⏳" },
+          { title: "Checked Out", value: data.checked_out_count, color: "#64748b", icon: "🚪" },
+          { title: "Rejected", value: data.rejected_requests, color: "#ef4444", icon: "❌" },
+        ].map((s) => (
+          <Grid item xs={12} sm={6} md={4} key={s.title}>
+            <StatCard {...s} />
+          </Grid>
+        ))}
+      </Grid>
 
       {/* Charts Row */}
       <Grid container spacing={3}>
@@ -903,8 +877,8 @@ function OpsOfficerDashboard({ data, onRefresh, loading, actionFilters }) {
   return (
     <Stack spacing={4}>
       <DashboardHeader
-        title="Operations Dashboard"
-        subtitle="Request review pipeline — approvals, rejections and workload metrics"
+        title="Security Control Room"
+        subtitle=""
         onRefresh={onRefresh}
         loading={loading}
         actionFilters={actionFilters}
@@ -914,13 +888,10 @@ function OpsOfficerDashboard({ data, onRefresh, loading, actionFilters }) {
       <Grid container spacing={2.5}>
         {[
           { title: "Pending Ops Review", value: data.pending_ops_review, color: "#f59e0b", icon: "📋", subtitle: "Awaiting your approval" },
-          { title: "Under Review", value: data.under_review, color: "#3b82f6", icon: "🔍", subtitle: "Currently being reviewed" },
-          { title: "Dept. Pending", value: data.dept_pending, color: "#8b5cf6", icon: "🏢", subtitle: "Awaiting dept. manager" },
           { title: "Approved Today", value: data.approved_today, color: "#10b981", icon: "✅", subtitle: "Approved in last 24h" },
           { title: "Rejected Today", value: data.rejected_today, color: "#ef4444", icon: "❌", subtitle: "Rejected in last 24h" },
-          { title: "Total Reviewed", value: data.total_reviewed_all_time, color: "#64748b", icon: "📊", subtitle: "All time total" },
         ].map((s) => (
-          <Grid item xs={12} sm={6} md={4} lg={2} key={s.title}>
+          <Grid item xs={12} sm={6} md={4} key={s.title}>
             <StatCard {...s} />
           </Grid>
         ))}
@@ -1941,7 +1912,7 @@ export default function DashboardPage() {
       border: '1px solid', borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' 
     }}>
       <Typography variant="body2" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 0.5 }}>
-        📅
+        
       </Typography>
       <TextField
         type="date" value={startDate}
@@ -1964,6 +1935,7 @@ export default function DashboardPage() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }} className="page-enter">
+      {role === "department_coordinator" && <Navigate to="/coordinator-dashboard" replace />}
       {role === "admin" && <AdminDashboard {...commonProps} />}
       {role === "pass_officer" && <PassOfficerDashboard {...commonProps} />}
       {role === "operations_officer" && <OpsOfficerDashboard {...commonProps} />}
@@ -1971,7 +1943,7 @@ export default function DashboardPage() {
       {role === "department_manager" && <DeptManagerDashboard {...commonProps} />}
 
       {/* Fallback for unknown roles */}
-      {!["admin", "pass_officer", "operations_officer", "security_gate_officer", "department_manager"].includes(role) && (
+      {!["admin", "pass_officer", "operations_officer", "security_gate_officer", "department_manager", "department_coordinator"].includes(role) && (
         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
           <Alert severity="info" sx={{ borderRadius: 2, maxWidth: 480 }}>
             <Typography variant="subtitle1" fontWeight={700} mb={0.5}>Dashboard Not Configured</Typography>

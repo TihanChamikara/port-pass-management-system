@@ -1,6 +1,6 @@
 import { Form, Input, Button, message } from 'antd';
 import { UserOutlined, LockOutlined, ArrowRightOutlined, LinkOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../features/authStore';
 
 /* ── Logo Component ── */
@@ -14,6 +14,8 @@ const PortLogo = () => (
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedDept = location.state?.department;
   const { login, loading } = useAuthStore();
   const [form] = Form.useForm();
   
@@ -21,7 +23,11 @@ const LoginPage = () => {
     const result = await login(values.username, values.password);
     if (result.success) {
       message.success('Login successful!');
-      navigate('/dashboard');
+      if (result.user?.role === 'department_coordinator') {
+        navigate('/coordinator-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       message.error(result.error || 'Invalid credentials. Please try again.');
     }
@@ -36,7 +42,7 @@ const LoginPage = () => {
       {/* Surrounding UI */}
       <div className="spatial-tag-tl">
         <div className="spatial-tag-bar" />
-        <p><h3>Safer Access.<br/>Smarter Operations.</h3></p>
+        <p><strong>Safer Access.<br/>Smarter Operations.</strong></p>
       </div>
       {/* Theme Toggle 
       <div className="spatial-tag-tr">
@@ -47,12 +53,12 @@ const LoginPage = () => {
       
       <div className="spatial-tag-bl">
         <SafetyCertificateOutlined style={{ fontSize: 16 }} />
-        <span><h3>Secure • Reliable • Trusted</h3></span>
+        <span><strong>Secure • Reliable • Trusted</strong></span>
       </div>
       
       <div className="spatial-tag-br">
         <div className="spatial-tag-bar" style={{ marginLeft: 'auto' }} />
-        <p style={{ textAlign: 'right' }}><h3>Building a safer tomorrow,<br/>together.</h3></p>
+        <p style={{ textAlign: 'right' }}><strong>Building a safer tomorrow,<br/>together.</strong></p>
       </div>
 
       {/* Login Card Layer */}
@@ -60,7 +66,9 @@ const LoginPage = () => {
         <PortLogo />
         
         <h1 className="login-title">Port Pass Pro</h1>
-        <p className="login-subtitle">Sign in to continue</p>
+        <p className="login-subtitle">
+          {selectedDept ? `Sign in to continue • ${selectedDept}` : 'Sign in to continue'}
+        </p>
 
         <Form
           form={form}
@@ -108,18 +116,7 @@ const LoginPage = () => {
               {loading ? 'Signing In...' : 'Sign In'}
             </Button>
           </Form.Item>
-        </Form>
-
-        <div className="login-divider">
-          <span className="login-divider-line" />
-          <span className="login-divider-text">OR</span>
-          <span className="login-divider-line" />
-        </div>
-
-        <Link to="/visitor-request" className="visitor-link">
-          <LinkOutlined style={{ marginRight: 6 }} />
-          Submit an internal visitor request
-        </Link>
+        </Form>        
       </div>
 
       {/* CSS Stylesheet embedded for perfect modularity */}
@@ -199,7 +196,6 @@ const LoginPage = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-            inset 0 1px 0 rgba(255, 255, 255, 0.55);
           margin-bottom: 24px;
         }
 

@@ -672,7 +672,7 @@ async def get_requests_for_pass_generation(
     if current_user.role == "pass_officer":
         query = query.filter(VisitorRequest.visitor_type != "vip")
     total = query.count()
-    items = query.order_by(VisitorRequest.created_at.asc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = query.order_by(VisitorRequest.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
     return RequestListResponse(
         items=[PublicVisitorRequestResponse.model_validate(item, from_attributes=True) for item in items],
@@ -830,7 +830,7 @@ async def get_requests_for_dept_manager(
         query = query.filter(VisitorRequest.department_id == current_user.department_id)
 
     total = query.count()
-    items = query.order_by(VisitorRequest.created_at.asc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = query.order_by(VisitorRequest.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
     return {
         "items": [PublicVisitorRequestResponse.model_validate(item, from_attributes=True) for item in items],
