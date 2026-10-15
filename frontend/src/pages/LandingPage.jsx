@@ -27,7 +27,7 @@ const LandingPage = () => {
         <PortLogo />
 
         <h1 className="portal-title">
-          Welcome to the Visitor Management Portal
+          Welcome to the<br />Visitor Management Portal
         </h1>
         <p className="portal-subtitle">
           Managing Visitors, Protecting CWIT
@@ -91,7 +91,7 @@ const LandingPage = () => {
           position: relative;
           z-index: 10;
           width: 100%;
-          max-width: 480px;
+          max-width: 500px;
           padding: 44px 40px 48px;
           text-align: center;
           
@@ -122,15 +122,16 @@ const LandingPage = () => {
           display: flex;
           flex-direction: column;
           align-items: center;
+          margin-bottom: 22px;
         }
 
         .logo-halo {
-          width: 600px;
-          height: 200px;
+          width: 280px;
+          max-width: 100%;
+          height: 85px;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 20px;
         }
 
         .logo {
@@ -142,21 +143,27 @@ const LandingPage = () => {
 
         /* Title & Subtitle */
         .portal-title {
-          margin: 0 0 8px;
+          margin: 0 auto 10px;
+          max-width: 420px;
           color: #0a509b;
           font-weight: 800;
-          font-size: 24px;
-          line-height: 1.25;
+          font-size: clamp(23px, 3.2vw, 27px);
+          line-height: 1.28;
           letter-spacing: -0.4px;
+          text-align: center;
+          text-wrap: balance;
         }
 
         .portal-subtitle {
-          margin: 0 0 32px;
+          margin: 0 auto 32px;
+          max-width: 380px;
           color: #d32020;
-          font-size: 14.5px;
+          font-size: clamp(14.5px, 2vw, 16px);
           font-weight: 700;
-          line-height: 1.4;
-          letter-spacing: 0.2px;
+          line-height: 1.45;
+          letter-spacing: 0.3px;
+          text-align: center;
+          text-wrap: balance;
         }
 
         /* Actions Stack */
