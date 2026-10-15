@@ -384,13 +384,21 @@ def _gate_officer_dashboard(db: Session, date_from: str | None, date_to: str | N
         .filter(
             and_(
                 VisitorRequest.visitor_type == "vip",
-                VisitorRequest.requested_date >= today_start,
-                VisitorRequest.requested_date <= today_end,
                 VisitorRequest.status.in_([
                     RequestStatus.approved,
                     RequestStatus.issued,
                     RequestStatus.checked_in
-                ])
+                ]),
+                or_(
+                    and_(
+                        VisitorRequest.requested_date <= today_end,
+                        VisitorRequest.requested_end_date >= today_start,
+                    ),
+                    and_(
+                        VisitorRequest.requested_date >= today_start,
+                        VisitorRequest.requested_date <= today_end,
+                    ),
+                ),
             )
         )
         .order_by(VisitorRequest.requested_date.asc())

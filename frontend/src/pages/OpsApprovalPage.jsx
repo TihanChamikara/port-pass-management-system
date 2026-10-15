@@ -694,33 +694,110 @@ const OpsApprovalPage = () => {
               }}>
                 Visit &amp; Access Details
               </div>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '10px 24px',
-                marginBottom: 10,
-              }}>
-                {[
-                  { label: 'Scheduled Entry', value: selectedRequest.requested_date
-                    ? dayjs(selectedRequest.requested_date).format('DD MMM YYYY, HH:mm')
-                    : '—' },
-                  { label: 'Scheduled Exit', value: selectedRequest.requested_end_date
-                    ? dayjs(selectedRequest.requested_end_date).format('DD MMM YYYY, HH:mm')
-                    : '—' },
-                ].map(({ label, value }) => (
-                  <div key={label} style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8,
-                    padding: '10px 14px',
-                  }}>
-                    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                      {label}
+              {(() => {
+                const durationMatch = selectedRequest.additional_notes?.match(/Duration of Visit:\s*([^,\n]+)/i);
+                let parsedDuration = durationMatch ? durationMatch[1].trim() : null;
+                if (!parsedDuration && selectedRequest.expected_duration_minutes) {
+                  if (selectedRequest.expected_duration_minutes >= 4320) parsedDuration = '3 Days';
+                  else if (selectedRequest.expected_duration_minutes >= 2880) parsedDuration = '2 Days';
+                  else if (selectedRequest.expected_duration_minutes >= 1440) parsedDuration = '1 Day';
+                  else parsedDuration = `${Math.round(selectedRequest.expected_duration_minutes / 60)} Hours`;
+                }
+
+                let effectiveExit = selectedRequest.requested_end_date;
+                if (selectedRequest.requested_date) {
+                  const entry = dayjs(selectedRequest.requested_date);
+                  const rawExit = selectedRequest.requested_end_date ? dayjs(selectedRequest.requested_end_date) : entry.hour(17).minute(0);
+                  
+                  if (parsedDuration && rawExit.isSame(entry, 'day')) {
+                    if (parsedDuration.includes('3 Day') || parsedDuration === '3 Days') {
+                      effectiveExit = entry.add(3, 'day').hour(rawExit.hour()).minute(rawExit.minute()).toISOString();
+                    } else if (parsedDuration.includes('2 Day') || parsedDuration === '2 Days') {
+                      effectiveExit = entry.add(2, 'day').hour(rawExit.hour()).minute(rawExit.minute()).toISOString();
+                    } else if (parsedDuration.includes('1 Day') || parsedDuration === '1 Day') {
+                      effectiveExit = entry.add(1, 'day').hour(rawExit.hour()).minute(rawExit.minute()).toISOString();
+                    } else if (parsedDuration.includes('1 Week') || parsedDuration === '1 Week') {
+                      effectiveExit = entry.add(7, 'day').hour(rawExit.hour()).minute(rawExit.minute()).toISOString();
+                    } else if (parsedDuration.includes('More than 1 Week')) {
+                      effectiveExit = entry.add(14, 'day').hour(rawExit.hour()).minute(rawExit.minute()).toISOString();
+                    }
+                  }
+                }
+
+                const isMultiDay = parsedDuration && (parsedDuration.includes('Day') || parsedDuration.includes('Week'));
+
+                return (
+                  <>
+                    {isMultiDay && (
+                      <div style={{
+                        background: '#f0fdf4',
+                        border: '1px solid #86efac',
+                        borderRadius: 8,
+                        padding: '10px 14px',
+                        marginBottom: 12,
+                        fontSize: 13,
+                        color: '#166534',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                      }}>
+                        <ClockCircleOutlined style={{ color: '#16a34a', fontSize: 18 }} />
+                        <span>
+                          <strong>Multi-Day Visit Authorized:</strong> Requester selected <strong>{parsedDuration}</strong>. Exit time is calculated and extended with those days added (Scheduled Exit: <strong>{effectiveExit ? dayjs(effectiveExit).format('DD MMM YYYY, HH:mm') : '—'}</strong>).
+                        </span>
+                      </div>
+                    )}
+
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                      gap: '10px 20px',
+                      marginBottom: 10,
+                    }}>
+                      {[
+                        {
+                          label: 'Scheduled Entry',
+                          value: selectedRequest.requested_date
+                            ? dayjs(selectedRequest.requested_date).format('DD MMM YYYY, HH:mm')
+                            : '—',
+                        },
+                        {
+                          label: 'Duration of the Visit',
+                          value: parsedDuration ? (
+                            <Tag color="green" style={{ fontSize: 13, fontWeight: 700, padding: '2px 8px' }}>
+                              <ClockCircleOutlined /> {parsedDuration}
+                            </Tag>
+                          ) : (
+                            `${Math.round((selectedRequest.expected_duration_minutes || 480) / 60)} Hours`
+                          ),
+                        },
+                        {
+                          label: isMultiDay ? 'Scheduled Exit (Calculated)' : 'Scheduled Exit',
+                          value: effectiveExit
+                            ? <span style={{ color: isMultiDay ? '#15803d' : '#0f172a', fontWeight: isMultiDay ? 700 : 600 }}>{dayjs(effectiveExit).format('DD MMM YYYY, HH:mm')}</span>
+                            : '—',
+                        },
+                        {
+                          label: 'Daily Time Window',
+                          value: `${selectedRequest.requested_date ? dayjs(selectedRequest.requested_date).format('HH:mm') : '—'} – ${effectiveExit ? dayjs(effectiveExit).format('HH:mm') : '—'}`,
+                        },
+                      ].map(({ label, value }) => (
+                        <div key={label} style={{
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 8,
+                          padding: '10px 14px',
+                        }}>
+                          <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                            {label}
+                          </div>
+                          <div style={{ fontSize: 13.5, color: '#0f172a', fontWeight: 600 }}>{value}</div>
+                        </div>
+                      ))}
                     </div>
-                    <div style={{ fontSize: 13.5, color: '#0f172a', fontWeight: 600 }}>{value}</div>
-                  </div>
-                ))}
-              </div>
+                  </>
+                );
+              })()}
 
               {/* Zones — full width */}
               <div style={{

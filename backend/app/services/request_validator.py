@@ -76,7 +76,7 @@ class PublicRequestValidator:
     # Time constraints
     MIN_REQUEST_ADVANCE_HOURS = 1  # Requests must be for future times
     MAX_REQUEST_ADVANCE_DAYS = 30  # Cannot request more than 30 days ahead
-    MAX_DURATION_HOURS = 24  # Maximum visit duration
+    MAX_DURATION_HOURS = 24 * 30  # Support multi-day visits up to 30 days (720 hours)
 
     @staticmethod
     def validate_nic_or_passport(nic_or_passport: str) -> Tuple[bool, Optional[str]]:

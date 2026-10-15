@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Input, Button, Typography, message,
@@ -51,9 +51,7 @@ const GateControlPage = () => {
       const loadRequest = async () => {
         setLoading(true); setNotFound(false); setRequest(null);
         try {
-          const numericId = parseInt(idParam, 10);
-          if (isNaN(numericId)) { message.error('Please enter a valid numeric Request ID.'); setNotFound(true); return; }
-          const response = await api.get(`/api/visitor-requests/${numericId}/full`);
+          const response = await api.get(`/api/visitor-requests/${encodeURIComponent(idParam.trim())}/full`);
           setRequest(response.data);
         } catch (error) {
           if (error.response?.status === 404) setNotFound(true);
@@ -70,9 +68,7 @@ const GateControlPage = () => {
     if (!trimmedId) return;
     setLoading(true); setNotFound(false); setRequest(null);
     try {
-      const numericId = parseInt(trimmedId, 10);
-      if (isNaN(numericId)) { message.error('Please enter a valid numeric Request ID.'); setNotFound(true); return; }
-      const response = await api.get(`/api/visitor-requests/${numericId}/full`);
+      const response = await api.get(`/api/visitor-requests/${encodeURIComponent(trimmedId)}/full`);
       setRequest(response.data);
     } catch (error) {
       if (error.response?.status === 404) setNotFound(true);
@@ -130,13 +126,13 @@ const GateControlPage = () => {
 
       <Card style={{ marginBottom: 24, borderRadius: 8 }}>
         <Text strong style={{ display: 'block', marginBottom: 8 }}>
-          Enter the numeric database ID of the visitor request, then click <strong>Check Request</strong>.
+          Enter the Request ID (e.g. <code>REQ-20261015-XXXX</code> or database ID), then click <strong>Check Request</strong>.
         </Text>
         <Row gutter={16}>
           <Col flex={1}>
             <Input
               size="large"
-              placeholder="Enter numeric Request ID (e.g. 42)"
+              placeholder="Enter Request ID (e.g. REQ-20261015-XXXX or 42)"
               prefix={<ScanOutlined style={{ color: '#1890ff' }} />}
               value={searchId}
               onChange={e => { setSearchId(e.target.value); setNotFound(false); }}

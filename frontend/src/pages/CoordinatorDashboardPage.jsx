@@ -206,29 +206,52 @@ const CoordinatorDashboardPage = () => {
       const currentStepValues = form.getFieldsValue();
       const values = { ...formValues, ...currentStepValues };
 
-      let durationMinutes = 480;
-      if (values.visit_duration) {
-        if (typeof values.visit_duration === 'number') {
-          durationMinutes = values.visit_duration;
-        } else if (values.visit_duration.includes('1 Hour')) durationMinutes = 60;
-        else if (values.visit_duration.includes('2 Hour')) durationMinutes = 120;
-        else if (values.visit_duration.includes('3 Hour')) durationMinutes = 180;
-        else if (values.visit_duration.includes('4 Hour') || values.visit_duration.includes('Half Day')) durationMinutes = 240;
-        else if (values.visit_duration.includes('6 Hour')) durationMinutes = 360;
-        else if (values.visit_duration.includes('8 Hour') || values.visit_duration.includes('Full Day') || values.visit_duration.includes('1 Day')) durationMinutes = 480;
-        else if (values.visit_duration.includes('2 Day')) durationMinutes = 960;
-        else if (values.visit_duration.includes('3 Day')) durationMinutes = 1440;
-      } else if (values.expected_time_in && values.expected_time_out) {
-        durationMinutes = Math.max(15, values.expected_time_out.diff(values.expected_time_in, 'minute'));
-      }
-      durationMinutes = Math.min(1440, Math.max(15, durationMinutes));
+      const durationStr = values.visit_duration || '';
+      const entryDay = values.visit_date ? dayjs(values.visit_date) : dayjs();
+      const inTime = values.expected_time_in ? dayjs(values.expected_time_in) : null;
+      const outTime = values.expected_time_out ? dayjs(values.expected_time_out) : null;
 
-      const entryDateTime = values.visit_date
-        ? dayjs(values.visit_date).format('YYYY-MM-DD') + 'T' + (values.expected_time_in ? values.expected_time_in.format('HH:mm:ss') : '08:00:00')
-        : null;
-      const exitDateTime = values.visit_date
-        ? dayjs(values.visit_date).format('YYYY-MM-DD') + 'T' + (values.expected_time_out ? values.expected_time_out.format('HH:mm:ss') : '17:00:00')
-        : null;
+      const entryDateTime = entryDay
+        .hour(inTime ? inTime.hour() : 8)
+        .minute(inTime ? inTime.minute() : 0)
+        .second(0);
+
+      // Calculate exit date & time with duration days added
+      let exitDateTime = entryDay
+        .hour(outTime ? outTime.hour() : 17)
+        .minute(outTime ? outTime.minute() : 0)
+        .second(0);
+
+      let durationMinutes = 480;
+
+      if (durationStr) {
+        if (durationStr.includes('3 Day') || durationStr === '3 Days') {
+          exitDateTime = exitDateTime.add(3, 'day');
+          durationMinutes = 4320;
+        } else if (durationStr.includes('2 Day') || durationStr === '2 Days') {
+          exitDateTime = exitDateTime.add(2, 'day');
+          durationMinutes = 2880;
+        } else if (durationStr.includes('1 Day') || durationStr === '1 Day') {
+          exitDateTime = exitDateTime.add(1, 'day');
+          durationMinutes = 1440;
+        } else if (durationStr.includes('1 Week') || durationStr === '1 Week') {
+          exitDateTime = exitDateTime.add(7, 'day');
+          durationMinutes = 10080;
+        } else if (durationStr.includes('More than 1 Week')) {
+          exitDateTime = exitDateTime.add(14, 'day');
+          durationMinutes = 20160;
+        } else if (durationStr.includes('Hour')) {
+          const match = durationStr.match(/(\d+)\s*Hour/i);
+          if (match) {
+            const h = parseInt(match[1], 10);
+            exitDateTime = entryDateTime.add(h, 'hour');
+            durationMinutes = h * 60;
+          }
+        }
+      } else if (inTime && outTime) {
+        durationMinutes = Math.max(15, outTime.diff(inTime, 'minute'));
+      }
+      durationMinutes = Math.min(43200, Math.max(15, durationMinutes));
 
       const payload = {
         // Visitor (primary from visitor 1)
@@ -239,8 +262,8 @@ const CoordinatorDashboardPage = () => {
         visitor_purpose: values.visitor_purpose,
         visitor_category: values.visitor_category || null,
         // Visit details
-        requested_date: entryDateTime,
-        requested_end_date: exitDateTime,
+        requested_date: values.visit_date ? entryDateTime.format('YYYY-MM-DDTHH:mm:ss') : null,
+        requested_end_date: values.visit_date ? exitDateTime.format('YYYY-MM-DDTHH:mm:ss') : null,
         expected_duration_minutes: durationMinutes,
         host_name: values.host_name || null,
         additional_notes: values.visit_duration ? `Duration of Visit: ${values.visit_duration}` : null,

@@ -315,12 +315,17 @@ async def track_request_status(
     description="Get complete request details with full audit history (authenticated users only)",
 )
 async def get_request_full_details(
-    request_id: int,
+    request_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get complete request details with audit history."""
-    visitor_req = db.query(VisitorRequest).filter(VisitorRequest.id == request_id).first()
+    if request_id.isdigit():
+        visitor_req = db.query(VisitorRequest).filter(
+            or_(VisitorRequest.id == int(request_id), VisitorRequest.request_id == request_id)
+        ).first()
+    else:
+        visitor_req = db.query(VisitorRequest).filter(VisitorRequest.request_id == request_id).first()
 
     if not visitor_req:
         raise HTTPException(status_code=404, detail="Request not found")

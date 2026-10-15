@@ -27,7 +27,7 @@ class VisitInformation(BaseModel):
     host_employee_name: Optional[str] = None
     entry_time: datetime
     exit_time: datetime
-    duration_minutes: int = Field(default=480, ge=15, le=1440)  # 15 min to 24 hours
+    duration_minutes: int = Field(default=480, ge=15, le=43200)  # 15 min to 30 days (multi-day passes)
 
 
 class AccessInformation(BaseModel):

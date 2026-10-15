@@ -82,22 +82,52 @@ const VisitorRequestPage = () => {
       const currentStepValues = form.getFieldsValue();
       const values = { ...formValues, ...currentStepValues };
 
+      const durationStr = values.visit_duration || '';
+      const entryDay = values.visit_date ? dayjs(values.visit_date) : dayjs();
+      const inTime = values.expected_time_in ? dayjs(values.expected_time_in) : null;
+      const outTime = values.expected_time_out ? dayjs(values.expected_time_out) : null;
+
+      const entryDateTime = entryDay
+        .hour(inTime ? inTime.hour() : 8)
+        .minute(inTime ? inTime.minute() : 0)
+        .second(0);
+
+      // Calculate exit date & time with duration days added
+      let exitDateTime = entryDay
+        .hour(outTime ? outTime.hour() : 17)
+        .minute(outTime ? outTime.minute() : 0)
+        .second(0);
+
       let durationMinutes = 480;
-      if (values.visit_duration) {
-        if (typeof values.visit_duration === 'number') {
-          durationMinutes = values.visit_duration;
-        } else if (values.visit_duration.includes('1 Hour')) durationMinutes = 60;
-        else if (values.visit_duration.includes('2 Hour')) durationMinutes = 120;
-        else if (values.visit_duration.includes('3 Hour')) durationMinutes = 180;
-        else if (values.visit_duration.includes('4 Hour') || values.visit_duration.includes('Half Day')) durationMinutes = 240;
-        else if (values.visit_duration.includes('6 Hour')) durationMinutes = 360;
-        else if (values.visit_duration.includes('8 Hour') || values.visit_duration.includes('Full Day') || values.visit_duration.includes('1 Day')) durationMinutes = 480;
-        else if (values.visit_duration.includes('2 Day')) durationMinutes = 960;
-        else if (values.visit_duration.includes('3 Day')) durationMinutes = 1440;
-      } else if (values.expected_time_in && values.expected_time_out) {
-        durationMinutes = Math.max(15, values.expected_time_out.diff(values.expected_time_in, 'minute'));
+
+      if (durationStr) {
+        if (durationStr.includes('3 Day') || durationStr === '3 Days') {
+          exitDateTime = exitDateTime.add(3, 'day');
+          durationMinutes = 4320;
+        } else if (durationStr.includes('2 Day') || durationStr === '2 Days') {
+          exitDateTime = exitDateTime.add(2, 'day');
+          durationMinutes = 2880;
+        } else if (durationStr.includes('1 Day') || durationStr === '1 Day') {
+          exitDateTime = exitDateTime.add(1, 'day');
+          durationMinutes = 1440;
+        } else if (durationStr.includes('1 Week') || durationStr === '1 Week') {
+          exitDateTime = exitDateTime.add(7, 'day');
+          durationMinutes = 10080;
+        } else if (durationStr.includes('More than 1 Week')) {
+          exitDateTime = exitDateTime.add(14, 'day');
+          durationMinutes = 20160;
+        } else if (durationStr.includes('Hour')) {
+          const match = durationStr.match(/(\d+)\s*Hour/i);
+          if (match) {
+            const h = parseInt(match[1], 10);
+            exitDateTime = entryDateTime.add(h, 'hour');
+            durationMinutes = h * 60;
+          }
+        }
+      } else if (inTime && outTime) {
+        durationMinutes = Math.max(15, outTime.diff(inTime, 'minute'));
       }
-      durationMinutes = Math.min(1440, Math.max(15, durationMinutes));
+      durationMinutes = Math.min(43200, Math.max(15, durationMinutes));
 
       const payload = {
         requester_name: values.requester_name,
@@ -116,8 +146,8 @@ const VisitorRequestPage = () => {
           building_department: values.line_department || null,
           host_employee_name: values.host_name || null,
           host_employee_id: null,
-          entry_time: values.visit_date ? dayjs(values.visit_date).format('YYYY-MM-DD') + 'T' + (values.expected_time_in ? values.expected_time_in.format('HH:mm:ss') : '08:00:00') : null,
-          exit_time: values.visit_date ? dayjs(values.visit_date).format('YYYY-MM-DD') + 'T' + (values.expected_time_out ? values.expected_time_out.format('HH:mm:ss') : '17:00:00') : null,
+          entry_time: values.visit_date ? entryDateTime.format('YYYY-MM-DDTHH:mm:ss') : null,
+          exit_time: values.visit_date ? exitDateTime.format('YYYY-MM-DDTHH:mm:ss') : null,
           duration_minutes: durationMinutes,
         },
         access: {
@@ -135,7 +165,13 @@ const VisitorRequestPage = () => {
 
       const response = await api.post('/api/visitor-requests/submit', payload);
       setSubmitted(response.data);
-      setSubmittedValues(values);
+      setSubmittedValues({
+        ...values,
+        entryDateTime,
+        exitDateTime,
+        durationMinutes,
+        durationStr,
+      });
       message.success('Request submitted successfully!');
     } catch (error) {
       console.error('Submission failed:', error);
@@ -165,7 +201,27 @@ const VisitorRequestPage = () => {
   };
 
   if (submitted) {
-    const displayDuration = submittedValues?.visit_duration || `${Math.round((submittedValues?.expected_time_out && submittedValues?.expected_time_in ? Math.max(15, submittedValues.expected_time_out.diff(submittedValues.expected_time_in, 'minute')) : 480) / 60)} Hours`;
+    const durationStr = submittedValues?.visit_duration || '';
+    const displayDuration = durationStr || `${Math.round((submittedValues?.expected_time_out && submittedValues?.expected_time_in ? Math.max(15, submittedValues.expected_time_out.diff(submittedValues.expected_time_in, 'minute')) : 480) / 60)} Hours`;
+
+    let calculatedExitTime = submittedValues?.exitDateTime;
+    if (!calculatedExitTime && submittedValues?.visit_date) {
+      const entryDay = dayjs(submittedValues.visit_date);
+      const outTime = submittedValues.expected_time_out ? dayjs(submittedValues.expected_time_out) : null;
+      calculatedExitTime = entryDay.hour(outTime ? outTime.hour() : 17).minute(outTime ? outTime.minute() : 0);
+      if (durationStr.includes('3 Day') || durationStr === '3 Days') {
+        calculatedExitTime = calculatedExitTime.add(3, 'day');
+      } else if (durationStr.includes('2 Day') || durationStr === '2 Days') {
+        calculatedExitTime = calculatedExitTime.add(2, 'day');
+      } else if (durationStr.includes('1 Day') || durationStr === '1 Day') {
+        calculatedExitTime = calculatedExitTime.add(1, 'day');
+      } else if (durationStr.includes('1 Week') || durationStr === '1 Week') {
+        calculatedExitTime = calculatedExitTime.add(7, 'day');
+      } else if (durationStr.includes('More than 1 Week')) {
+        calculatedExitTime = calculatedExitTime.add(14, 'day');
+      }
+    }
+    const isMultiDay = durationStr.includes('Day') || durationStr.includes('Week');
 
     return (
       <div className="visitor-page">
@@ -186,17 +242,42 @@ const VisitorRequestPage = () => {
               ]}
             />
 
-            {/* Submitted Data Showing Card */}
+            {/* Request Details Pending Security Approval Card */}
             <Card
               title={
-                <span style={{ color: '#1a3c6e', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <GlobalOutlined style={{ color: '#0ea5e9' }} />
-                  Submitted Request Details
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: 8 }}>
+                  <span style={{ color: '#1a3c6e', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <GlobalOutlined style={{ color: '#0ea5e9' }} />
+                    Request Details
+                  </span>
+                  <Tag color="orange" style={{ fontWeight: 700, fontSize: 12, padding: '2px 10px', borderRadius: 4 }}>
+                    Pending Security Approval
+                  </Tag>
+                </div>
               }
               style={{ marginTop: 16, borderRadius: 10, border: '1px solid #e2e8f0', background: '#fafbfc' }}
               bodyStyle={{ padding: '20px 24px' }}
             >
+              {isMultiDay && (
+                <div style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #86efac',
+                  borderRadius: 8,
+                  padding: '10px 14px',
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: '#166534',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                  <ClockCircleOutlined style={{ color: '#16a34a', fontSize: 18 }} />
+                  <span>
+                    <strong>Multi-Day Visit Authorized:</strong> You selected <strong>{durationStr}</strong>. Your exit time is extended with those 3 days added, valid until <strong>{calculatedExitTime ? calculatedExitTime.format('DD MMMM YYYY, HH:mm') : '—'}</strong>.
+                  </span>
+                </div>
+              )}
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px 20px', marginBottom: 16 }}>
                 <div>
                   <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Requester Name</Text>
@@ -215,7 +296,7 @@ const VisitorRequestPage = () => {
                   <Text strong style={{ fontSize: 14, color: '#0f172a' }}>{submittedValues?.visitor_category || '—'}</Text>
                 </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Visit Date</Text>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Visit Date (Entry)</Text>
                   <Text strong style={{ fontSize: 14, color: '#0f172a' }}>
                     {submittedValues?.visit_date ? dayjs(submittedValues.visit_date).format('DD MMMM YYYY') : '—'}
                   </Text>
@@ -228,10 +309,18 @@ const VisitorRequestPage = () => {
                     {displayDuration}
                   </Text>
                 </div>
+                <div style={{ background: isMultiDay ? '#eff6ff' : 'transparent', padding: isMultiDay ? '8px 12px' : 0, borderRadius: isMultiDay ? 8 : 0, border: isMultiDay ? '1px solid #bfdbfe' : 'none' }}>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600, color: isMultiDay ? '#1d4ed8' : undefined }}>
+                    {isMultiDay ? 'Scheduled Exit (Calculated)' : 'Scheduled Exit'}
+                  </Text>
+                  <Text strong style={{ fontSize: 14, color: isMultiDay ? '#1e40af' : '#0f172a' }}>
+                    {calculatedExitTime ? calculatedExitTime.format('DD MMMM YYYY, HH:mm') : '—'}
+                  </Text>
+                </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Expected Time Window</Text>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Daily Time Window</Text>
                   <Text style={{ fontSize: 13, color: '#334155', fontWeight: 500 }}>
-                    {(submittedValues?.expected_time_in ? dayjs(submittedValues.expected_time_in).format('HH:mm') : '—')} – {(submittedValues?.expected_time_out ? dayjs(submittedValues.expected_time_out).format('HH:mm') : '—')}
+                    {(submittedValues?.expected_time_in ? dayjs(submittedValues.expected_time_in).format('HH:mm') : '08:00')} – {(submittedValues?.expected_time_out ? dayjs(submittedValues.expected_time_out).format('HH:mm') : '17:00')}
                   </Text>
                 </div>
                 <div>
