@@ -92,7 +92,7 @@ const LandingPage = () => {
           z-index: 10;
           width: 100%;
           max-width: 500px;
-          padding: 44px 40px 48px;
+          padding: 38px 40px 44px;
           text-align: center;
           
           background: var(--glass-bg);
@@ -122,13 +122,13 @@ const LandingPage = () => {
           display: flex;
           flex-direction: column;
           align-items: center;
-          margin-bottom: 22px;
+          margin-bottom: 16px;
         }
 
         .logo-halo {
-          width: 280px;
-          max-width: 100%;
-          height: 85px;
+          width: 100%;
+          max-width: 320px;
+          height: 120px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -137,8 +137,10 @@ const LandingPage = () => {
         .logo {
           max-width: 100%;
           max-height: 100%;
+          width: auto;
+          height: 100%;
           object-fit: contain;
-          filter: drop-shadow(0 4px 12px rgba(15, 23, 42, 0.08));
+          filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.08));
         }
 
         /* Title & Subtitle */
@@ -227,17 +229,26 @@ const LandingPage = () => {
         /* Responsive */
         @media (max-width: 480px) {
           .login-card-spatial {
-            padding: 36px 24px 40px;
+            padding: 30px 20px 36px;
             border-radius: 24px;
           }
 
+          .logo-section {
+            margin-bottom: 12px;
+          }
+
+          .logo-halo {
+            height: 95px;
+          }
+
           .portal-title {
-            font-size: 20px;
+            font-size: 21px;
+            line-height: 1.3;
           }
 
           .portal-subtitle {
-            font-size: 13.5px;
-            margin-bottom: 26px;
+            font-size: 14px;
+            margin-bottom: 24px;
           }
 
           .portal-btn {
