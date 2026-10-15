@@ -241,12 +241,12 @@ const DepartmentSelectionPage = () => {
         }
 
         .logo-halo {
-          width: 240px;
-          height: 96px;
+          width: 100%;
+          max-width:400px;
+          height: 200px;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 16px;
         }
 
         .logo {

@@ -127,8 +127,8 @@ const LandingPage = () => {
 
         .logo-halo {
           width: 100%;
-          max-width: 320px;
-          height: 120px;
+          max-width:400px;
+          height: 200px;
           display: flex;
           align-items: center;
           justify-content: center;

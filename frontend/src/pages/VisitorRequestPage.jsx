@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, DatePicker, Select, Card, Steps, message, Result, Typography, Divider, TimePicker } from 'antd';
-import { UserOutlined, GlobalOutlined, ApartmentOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { Form, Input, Button, DatePicker, Select, Card, Steps, message, Result, Typography, Divider, TimePicker, Tag } from 'antd';
+import { UserOutlined, GlobalOutlined, ApartmentOutlined, MinusCircleOutlined, PlusOutlined, ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import api from '../api/api';
 import dayjs from 'dayjs';
 
@@ -22,10 +22,26 @@ const DEPARTMENTS = [
   'Security',
 ];
 
+const VISIT_DURATIONS = [
+  '1 Hour',
+  '2 Hours',
+  '3 Hours',
+  '4 Hours (Half Day)',
+  '6 Hours',
+  '8 Hours (Full Day)',
+  'Full Day',
+  '1 Day',
+  '2 Days',
+  '3 Days',
+  '1 Week',
+  'More than 1 Week',
+];
+
 const VisitorRequestPage = () => {
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(null);
+  const [submittedValues, setSubmittedValues] = useState(null);
   const [form] = Form.useForm();
   const [formValues, setFormValues] = useState({});
 
@@ -39,6 +55,7 @@ const VisitorRequestPage = () => {
           'visitor_category',
           'visit_area',
           'visit_date',
+          'visit_duration',
           'expected_time_in',
           'expected_time_out',
         ]);
@@ -66,9 +83,21 @@ const VisitorRequestPage = () => {
       const values = { ...formValues, ...currentStepValues };
 
       let durationMinutes = 480;
-      if (values.expected_time_in && values.expected_time_out) {
+      if (values.visit_duration) {
+        if (typeof values.visit_duration === 'number') {
+          durationMinutes = values.visit_duration;
+        } else if (values.visit_duration.includes('1 Hour')) durationMinutes = 60;
+        else if (values.visit_duration.includes('2 Hour')) durationMinutes = 120;
+        else if (values.visit_duration.includes('3 Hour')) durationMinutes = 180;
+        else if (values.visit_duration.includes('4 Hour') || values.visit_duration.includes('Half Day')) durationMinutes = 240;
+        else if (values.visit_duration.includes('6 Hour')) durationMinutes = 360;
+        else if (values.visit_duration.includes('8 Hour') || values.visit_duration.includes('Full Day') || values.visit_duration.includes('1 Day')) durationMinutes = 480;
+        else if (values.visit_duration.includes('2 Day')) durationMinutes = 960;
+        else if (values.visit_duration.includes('3 Day')) durationMinutes = 1440;
+      } else if (values.expected_time_in && values.expected_time_out) {
         durationMinutes = Math.max(15, values.expected_time_out.diff(values.expected_time_in, 'minute'));
       }
+      durationMinutes = Math.min(1440, Math.max(15, durationMinutes));
 
       const payload = {
         requester_name: values.requester_name,
@@ -98,7 +127,7 @@ const VisitorRequestPage = () => {
         },
         department_id: null,
         department_name: values.line_department || null,
-        additional_notes: null,
+        additional_notes: values.visit_duration ? `Duration of Visit: ${values.visit_duration}` : null,
         visitor_category: values.visitor_category || null,
         visitors: values.visitors || [],
         vehicles: values.vehicles?.filter(v => v?.vehicle_no) || [],
@@ -106,6 +135,7 @@ const VisitorRequestPage = () => {
 
       const response = await api.post('/api/visitor-requests/submit', payload);
       setSubmitted(response.data);
+      setSubmittedValues(values);
       message.success('Request submitted successfully!');
     } catch (error) {
       console.error('Submission failed:', error);
@@ -135,28 +165,119 @@ const VisitorRequestPage = () => {
   };
 
   if (submitted) {
+    const displayDuration = submittedValues?.visit_duration || `${Math.round((submittedValues?.expected_time_out && submittedValues?.expected_time_in ? Math.max(15, submittedValues.expected_time_out.diff(submittedValues.expected_time_in, 'minute')) : 480) / 60)} Hours`;
+
     return (
       <div className="visitor-page">
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <Card className="visitor-card">
+        <div style={{ maxWidth: '820px', margin: '0 auto', paddingBottom: 40 }}>
+          <Card className="visitor-card" style={{ boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)', borderRadius: 14 }}>
             <Result
               status="success"
               title="Visitor Pass Request Submitted!"
-              subTitle={`Your Request ID is: ${submitted.request_id}. Please save this for your records.`}
+              subTitle={
+                <span>
+                  Your Request ID is: <strong style={{ color: '#0ea5e9', fontSize: 16 }}>{submitted.request_id}</strong>. Please save this for your records.
+                </span>
+              }
               extra={[
-                <Button type="primary" key="home" onClick={() => { setSubmitted(null); form.resetFields(); setCurrent(0); setFormValues({}); }}>
+                <Button type="primary" key="home" icon={<PlusOutlined />} onClick={() => { setSubmitted(null); setSubmittedValues(null); form.resetFields(); setCurrent(0); setFormValues({}); }}>
                   Submit Another Request
                 </Button>,
               ]}
             />
-            {submitted.department_name && (
-              <div style={{ textAlign: 'center', marginTop: 8 }}>
-                <span style={{ background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 4, padding: '4px 12px', fontSize: 13 }}>
-                  <ApartmentOutlined style={{ marginRight: 6 }} />
-                  Routed to: {submitted.department_name}
+
+            {/* Submitted Data Showing Card */}
+            <Card
+              title={
+                <span style={{ color: '#1a3c6e', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <GlobalOutlined style={{ color: '#0ea5e9' }} />
+                  Submitted Request Details
                 </span>
+              }
+              style={{ marginTop: 16, borderRadius: 10, border: '1px solid #e2e8f0', background: '#fafbfc' }}
+              bodyStyle={{ padding: '20px 24px' }}
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px 20px', marginBottom: 16 }}>
+                <div>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Requester Name</Text>
+                  <Text strong style={{ fontSize: 14, color: '#0f172a' }}>{submittedValues?.requester_name || submitted.requester_name || '—'}</Text>
+                </div>
+                <div>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Line Department</Text>
+                  <Tag color="blue" style={{ marginTop: 2, fontWeight: 600 }}>{submitted.department_name || submittedValues?.line_department || '—'}</Tag>
+                </div>
+                <div>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Visit Purpose</Text>
+                  <Text strong style={{ fontSize: 14, color: '#0f172a' }}>{submittedValues?.visitor_purpose || submitted.visitor_purpose || '—'}</Text>
+                </div>
+                <div>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Visitor Category</Text>
+                  <Text strong style={{ fontSize: 14, color: '#0f172a' }}>{submittedValues?.visitor_category || '—'}</Text>
+                </div>
+                <div>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Visit Date</Text>
+                  <Text strong style={{ fontSize: 14, color: '#0f172a' }}>
+                    {submittedValues?.visit_date ? dayjs(submittedValues.visit_date).format('DD MMMM YYYY') : '—'}
+                  </Text>
+                </div>
+                <div style={{ background: '#f0fdf4', padding: '8px 12px', borderRadius: 8, border: '1px solid #bbf7d0' }}>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', color: '#166534', fontWeight: 700 }}>
+                    Duration of the Visit
+                  </Text>
+                  <Text strong style={{ fontSize: 14, color: '#15803d' }}>
+                    {displayDuration}
+                  </Text>
+                </div>
+                <div>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Expected Time Window</Text>
+                  <Text style={{ fontSize: 13, color: '#334155', fontWeight: 500 }}>
+                    {(submittedValues?.expected_time_in ? dayjs(submittedValues.expected_time_in).format('HH:mm') : '—')} – {(submittedValues?.expected_time_out ? dayjs(submittedValues.expected_time_out).format('HH:mm') : '—')}
+                  </Text>
+                </div>
+                <div>
+                  <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', fontWeight: 600 }}>Access Areas</Text>
+                  <div style={{ marginTop: 2 }}>
+                    {(submittedValues?.visit_area || []).map(a => (
+                      <Tag key={a} color="geekblue" style={{ marginBottom: 4 }}>{a}</Tag>
+                    ))}
+                  </div>
+                </div>
               </div>
-            )}
+
+              {/* Visitors Summary */}
+              {submittedValues?.visitors?.length > 0 && (
+                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14, marginTop: 10 }}>
+                  <Text strong style={{ fontSize: 13, color: '#1a3c6e', display: 'block', marginBottom: 8 }}>
+                    Registered Visitors ({submittedValues.visitors.length})
+                  </Text>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                    {submittedValues.visitors.map((v, i) => (
+                      <div key={i} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+                        <strong>{v.name || `Visitor ${i + 1}`}</strong>
+                        {v.nic_passport && <div style={{ color: '#64748b' }}>NIC: {v.nic_passport}</div>}
+                        {v.company && <div style={{ color: '#64748b' }}>Company: {v.company}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Vehicles Summary */}
+              {submittedValues?.vehicles?.filter(v => v?.vehicle_no)?.length > 0 && (
+                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14, marginTop: 10 }}>
+                  <Text strong style={{ fontSize: 13, color: '#1a3c6e', display: 'block', marginBottom: 8 }}>
+                    Registered Vehicles ({submittedValues.vehicles.filter(v => v?.vehicle_no).length})
+                  </Text>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {submittedValues.vehicles.filter(v => v?.vehicle_no).map((v, i) => (
+                      <Tag key={i} color="purple" style={{ fontSize: 13, padding: '4px 10px' }}>
+                        🚗 {v.vehicle_no}
+                      </Tag>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Card>
           </Card>
         </div>
       </div>
@@ -222,12 +343,28 @@ const VisitorRequestPage = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="visit_date" label="Visit Date" rules={[{ required: true }]}>
+          <Form.Item name="visit_date" label="Visit Date" rules={[{ required: true, message: 'Please select the visit date.' }]}>
             <DatePicker
               format="YYYY-MM-DD"
               style={{ width: '100%' }}
               disabledDate={(current) => current && (current < dayjs().startOf('day') || current > dayjs().add(30, 'day').endOf('day'))}
             />
+          </Form.Item>
+          <Form.Item
+            name="visit_duration"
+            label="Duration of the Visit"
+            rules={[{ required: true, message: 'Please select duration of the visit.' }]}
+          >
+            <Select
+              placeholder="Select duration of the visit"
+              suffixIcon={<ClockCircleOutlined />}
+              showSearch
+              allowClear
+            >
+              {VISIT_DURATIONS.map(d => (
+                <Select.Option key={d} value={d}>{d}</Select.Option>
+              ))}
+            </Select>
           </Form.Item>
           <Form.Item name="expected_time_in" label="Expected Time In" rules={[{ required: true }]}>
             <TimePicker format="HH:mm" style={{ width: '100%' }} />

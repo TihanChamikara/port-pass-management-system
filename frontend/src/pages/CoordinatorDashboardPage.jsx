@@ -40,6 +40,21 @@ const STATUS_LABEL = {
 };
 
 // ── Options exactly mirroring VisitorRequestPage ──────────────────────────────
+const VISIT_DURATIONS = [
+  '1 Hour',
+  '2 Hours',
+  '3 Hours',
+  '4 Hours (Half Day)',
+  '6 Hours',
+  '8 Hours (Full Day)',
+  'Full Day',
+  '1 Day',
+  '2 Days',
+  '3 Days',
+  '1 Week',
+  'More than 1 Week',
+];
+
 const VISIT_PURPOSES = [
   'Business Meeting', 'Official Visit', 'Site Visit', 'Vessel Operations',
   'Cargo Operations', 'Project Work', 'Maintenance Work', 'Equipment Inspection',
@@ -163,6 +178,7 @@ const CoordinatorDashboardPage = () => {
           'visitor_category',
           'visit_area',
           'visit_date',
+          'visit_duration',
           'expected_time_in',
           'expected_time_out',
         ]);
@@ -191,9 +207,21 @@ const CoordinatorDashboardPage = () => {
       const values = { ...formValues, ...currentStepValues };
 
       let durationMinutes = 480;
-      if (values.expected_time_in && values.expected_time_out) {
+      if (values.visit_duration) {
+        if (typeof values.visit_duration === 'number') {
+          durationMinutes = values.visit_duration;
+        } else if (values.visit_duration.includes('1 Hour')) durationMinutes = 60;
+        else if (values.visit_duration.includes('2 Hour')) durationMinutes = 120;
+        else if (values.visit_duration.includes('3 Hour')) durationMinutes = 180;
+        else if (values.visit_duration.includes('4 Hour') || values.visit_duration.includes('Half Day')) durationMinutes = 240;
+        else if (values.visit_duration.includes('6 Hour')) durationMinutes = 360;
+        else if (values.visit_duration.includes('8 Hour') || values.visit_duration.includes('Full Day') || values.visit_duration.includes('1 Day')) durationMinutes = 480;
+        else if (values.visit_duration.includes('2 Day')) durationMinutes = 960;
+        else if (values.visit_duration.includes('3 Day')) durationMinutes = 1440;
+      } else if (values.expected_time_in && values.expected_time_out) {
         durationMinutes = Math.max(15, values.expected_time_out.diff(values.expected_time_in, 'minute'));
       }
+      durationMinutes = Math.min(1440, Math.max(15, durationMinutes));
 
       const entryDateTime = values.visit_date
         ? dayjs(values.visit_date).format('YYYY-MM-DD') + 'T' + (values.expected_time_in ? values.expected_time_in.format('HH:mm:ss') : '08:00:00')
@@ -215,6 +243,7 @@ const CoordinatorDashboardPage = () => {
         requested_end_date: exitDateTime,
         expected_duration_minutes: durationMinutes,
         host_name: values.host_name || null,
+        additional_notes: values.visit_duration ? `Duration of Visit: ${values.visit_duration}` : null,
         // Access
         requested_zones: values.visit_area || [],
         vehicle_number: values.vehicles?.[0]?.vehicle_no || null,
@@ -352,6 +381,22 @@ const CoordinatorDashboardPage = () => {
               style={{ width: '100%' }}
               disabledDate={(current) => current && (current < dayjs().startOf('day') || current > dayjs().add(30, 'day').endOf('day'))}
             />
+          </Form.Item>
+          <Form.Item
+            name="visit_duration"
+            label="Duration of the Visit"
+            rules={[{ required: true, message: 'Please select duration of the visit.' }]}
+          >
+            <Select
+              placeholder="Select duration of the visit"
+              suffixIcon={<ClockCircleOutlined />}
+              showSearch
+              allowClear
+            >
+              {VISIT_DURATIONS.map(d => (
+                <Select.Option key={d} value={d}>{d}</Select.Option>
+              ))}
+            </Select>
           </Form.Item>
           <Form.Item name="expected_time_in" label="Expected Time In" rules={[{ required: true, message: 'Please select expected time in' }]}>
             <TimePicker format="HH:mm" style={{ width: '100%' }} minuteStep={15} />
