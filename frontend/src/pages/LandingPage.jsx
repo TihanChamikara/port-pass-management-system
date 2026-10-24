@@ -92,10 +92,10 @@ const LandingPage = () => {
           z-index: 10;
           width: 100%;
           max-width: 500px;
-          padding: 38px 40px 44px;
+          padding: 26px 34px 30px;
           text-align: center;
           
-          background: var(--glass-bg);
+          background: rgba(238, 240, 245, 0.68);
           backdrop-filter: blur(var(--glass-blur)) saturate(180%);
           -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
           border: 1px solid var(--glass-border);
@@ -122,13 +122,13 @@ const LandingPage = () => {
           display: flex;
           flex-direction: column;
           align-items: center;
-          margin-bottom: 16px;
+          margin-bottom: 4px;
         }
 
         .logo-halo {
           width: 100%;
-          max-width:400px;
-          height: 200px;
+          max-width: 300px;
+          height: 120px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -138,14 +138,15 @@ const LandingPage = () => {
           max-width: 100%;
           max-height: 100%;
           width: auto;
-          height: 100%;
+          height: auto;
+          max-height: 112px;
           object-fit: contain;
           filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.08));
         }
 
         /* Title & Subtitle */
         .portal-title {
-          margin: 0 auto 10px;
+          margin: 0 auto 7px;
           max-width: 420px;
           color: #0a509b;
           font-weight: 800;
@@ -157,7 +158,7 @@ const LandingPage = () => {
         }
 
         .portal-subtitle {
-          margin: 0 auto 32px;
+          margin: 0 auto 20px;
           max-width: 380px;
           color: #d32020;
           font-size: clamp(14.5px, 2vw, 16px);
@@ -173,7 +174,7 @@ const LandingPage = () => {
           width: 100%;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
         }
 
         /* Purple Portal Button styled to Login aesthetic */
@@ -229,16 +230,16 @@ const LandingPage = () => {
         /* Responsive */
         @media (max-width: 480px) {
           .login-card-spatial {
-            padding: 30px 20px 36px;
+            padding: 22px 20px 26px;
             border-radius: 24px;
           }
 
           .logo-section {
-            margin-bottom: 12px;
+            margin-bottom: 4px;
           }
 
           .logo-halo {
-            height: 95px;
+            height: 76px;
           }
 
           .portal-title {
@@ -248,7 +249,7 @@ const LandingPage = () => {
 
           .portal-subtitle {
             font-size: 14px;
-            margin-bottom: 24px;
+            margin-bottom: 18px;
           }
 
           .portal-btn {

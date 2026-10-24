@@ -3,10 +3,11 @@ fastapi==0.115.0
 starlette==0.38.6
 uvicorn==0.30.6
 
-# ── Database ────────────────────────────────────────────────────────────
+# ── Database & Drivers ─────────────────────────────────────────────────
 SQLAlchemy==2.0.35
 alembic==1.13.2
 greenlet==3.5.0
+psycopg2-binary>=2.9.9
 
 # ── Pydantic / Validation ───────────────────────────────────────────────
 pydantic==2.9.2
@@ -33,6 +34,7 @@ h11==0.16.0
 anyio==4.13.0
 websockets==16.0
 watchfiles==1.1.1
+requests>=2.31.0
 
 # ── Configuration ───────────────────────────────────────────────────────
 python-dotenv==1.2.2

@@ -66,6 +66,8 @@ class PassResponse(PassBase):
     received_time: datetime | None
     status: PassStatus
     visitor_type: str | None = None
+    visitor_category: str | None = None
+    visit_area: list[str] = Field(default_factory=list)
 
 
 class PassListResponse(BaseModel):

@@ -120,7 +120,7 @@ const MainLayout = () => {
         <div className="sidebar-brand-icon">
           <SecurityScanOutlined />
         </div>
-        <span className="sidebar-brand-name">PORT PASS PRO</span>
+        <span className="sidebar-brand-name">  </span>
       </div>
 
       {/* Navigation Groups */}

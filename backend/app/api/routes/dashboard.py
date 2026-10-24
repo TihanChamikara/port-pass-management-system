@@ -9,6 +9,7 @@ Returns a dashboard payload scoped to the logged-in user's role:
   - department_manager     → department-scoped KPIs
 """
 
+import json
 from datetime import date, datetime, time, timezone, timedelta
 from typing import Any, Dict, List
 
@@ -227,6 +228,31 @@ def _pass_officer_dashboard(db: Session, date_from: str | None, date_to: str | N
         .all()
     )
 
+    # New-system breakdowns: based on the visitor request linked to each issued pass
+    visitor_category_dist: Dict[str, int] = {}
+    visit_area_dist: Dict[str, int] = {}
+    linked_rows = (
+        db.query(VisitorRequest.visitor_category, VisitorRequest.requested_zones)
+        .filter(VisitorRequest.pass_record_id.isnot(None))
+        .all()
+    )
+    for category, zones_raw in linked_rows:
+        cat_key = category or "Not Specified"
+        visitor_category_dist[cat_key] = visitor_category_dist.get(cat_key, 0) + 1
+        try:
+            areas = json.loads(zones_raw) if zones_raw else []
+        except (TypeError, ValueError):
+            areas = [zones_raw]
+        if not isinstance(areas, list):
+            areas = [areas]
+        for area in areas:
+            if area:
+                visit_area_dist[str(area)] = visit_area_dist.get(str(area), 0) + 1
+
+    visitors_on_site = db.query(VisitorRequest).filter(
+        VisitorRequest.status == RequestStatus.checked_in
+    ).count()
+
     return PassOfficerDashboardResponse(
         role="pass_officer",
         approved_awaiting_pass=approved_awaiting,
@@ -235,8 +261,11 @@ def _pass_officer_dashboard(db: Session, date_from: str | None, date_to: str | N
         expired_passes=expired_passes,
         pending_renewals=pending_renewals,
         total_passes_all_time=total_passes,
+        visitors_on_site=visitors_on_site,
         pass_type_distribution=pass_type_dist,
         zone_access_distribution=zone_dist,
+        visitor_category_distribution=visitor_category_dist,
+        visit_area_distribution=visit_area_dist,
         recent_issued=[_to_activity(r, db) for r in recent_issued],
     )
 

@@ -184,7 +184,7 @@ const DepartmentSelectionPage = () => {
           padding: 40px 44px 44px;
           text-align: center;
           
-          background: var(--glass-bg);
+          background: rgba(238, 240, 245, 0.68);
           backdrop-filter: blur(var(--glass-blur)) saturate(180%);
           -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
           border: 1.5px solid var(--glass-border);

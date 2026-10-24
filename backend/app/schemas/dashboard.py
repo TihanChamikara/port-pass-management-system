@@ -72,7 +72,11 @@ class PassOfficerDashboardResponse(BaseModel):
     expired_passes: int
     pending_renewals: int
     total_passes_all_time: int
-    # Charts
+    visitors_on_site: int = 0         # checked_in visitors
+    # Charts (new system)
+    visitor_category_distribution: Dict[str, int] = Field(default_factory=dict)
+    visit_area_distribution: Dict[str, int] = Field(default_factory=dict)
+    # Charts (legacy pass colour / zone system)
     pass_type_distribution: Dict[str, int] = Field(default_factory=dict)
     zone_access_distribution: Dict[str, int] = Field(default_factory=dict)
     # Recent

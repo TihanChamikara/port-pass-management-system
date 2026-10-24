@@ -19,8 +19,33 @@ import {
   Typography,
 } from "@mui/material";
 
-const ZONE_OPTIONS = ["Zone 1", "Zone 2", "Zone 3", "Zone 4"];
-const TYPE_OPTIONS = ["blue", "red", "orange", "green", "purple"];
+const VISITOR_CATEGORY_OPTIONS = [
+  "Internal Visitor (CWIT Staff)",
+  "Port User Visitor (Port Agents, Port-related Organizations)",
+  "Contractor/Vendor (Project/Maintenance Workers)",
+  "Government Official (Customs/Navy/Police/MEPA/CEA/Health Services/Labour Department/SLPA)",
+  "VIP/Official Visitor",
+  "Business Visitor",
+  "Department Visitor",
+  "Educational Visit",
+  "General External Visitor",
+  "Other",
+];
+const VISIT_AREA_OPTIONS = [
+  "Onboard Vessel",
+  "Wharf Area / Quay Side",
+  "Yard Area",
+  "Gate Complex",
+  "Container Inspection Area",
+  "Empty Container Yard",
+  "Reefer Monitoring Area",
+  "POB",
+  "Pass Office & Security Building",
+  "Wharf Building",
+  "OHS Building",
+  "DG Station",
+  "Workshop / Maintenance Facility",
+];
 const ACCESS_OPTIONS = ["Single Zone", "Multiple Zones", "All Zones"];
 
 const getStatusColor = (status) => {
@@ -29,17 +54,6 @@ const getStatusColor = (status) => {
     case "active": return "warning";
     case "expired": return "error";
     default: return "default";
-  }
-};
-
-const getTypeColor = (type) => {
-  switch (type) {
-    case "green": return { color: "#16A34A", bg: "rgba(22, 163, 74, 0.1)" };
-    case "blue": return { color: "#2563EB", bg: "rgba(37, 99, 235, 0.1)" };
-    case "red": return { color: "#DC2626", bg: "rgba(220, 38, 38, 0.1)" };
-    case "orange": return { color: "#EA580C", bg: "rgba(234, 88, 12, 0.1)" };
-    case "purple": return { color: "#9333EA", bg: "rgba(147, 51, 234, 0.1)" };
-    default: return { color: "#6B7280", bg: "rgba(107, 114, 128, 0.1)" };
   }
 };
 
@@ -56,26 +70,26 @@ export default function PassTable({ data, loading, filters, onFilterChange, onCh
             size="small"
             sx={{ flex: 1 }}
           />
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Zone</InputLabel>
+          <FormControl size="small" sx={{ minWidth: 180, maxWidth: 240 }}>
+            <InputLabel>Visitor Category</InputLabel>
             <Select
-              value={filters.zone}
-              label="Zone"
-              onChange={(e) => onFilterChange("zone", e.target.value)}
+              value={filters.visitor_category || ""}
+              label="Visitor Category"
+              onChange={(e) => onFilterChange("visitor_category", e.target.value)}
             >
-              <MenuItem value=""><em>None</em></MenuItem>
-              {ZONE_OPTIONS.map((z) => <MenuItem key={z} value={z}>{z}</MenuItem>)}
+              <MenuItem value=""><em>All</em></MenuItem>
+              {VISITOR_CATEGORY_OPTIONS.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Pass Type</InputLabel>
+          <FormControl size="small" sx={{ minWidth: 160, maxWidth: 220 }}>
+            <InputLabel>Visit Area</InputLabel>
             <Select
-              value={filters.pass_type}
-              label="Pass Type"
-              onChange={(e) => onFilterChange("pass_type", e.target.value)}
+              value={filters.visit_area || ""}
+              label="Visit Area"
+              onChange={(e) => onFilterChange("visit_area", e.target.value)}
             >
-              <MenuItem value=""><em>None</em></MenuItem>
-              {TYPE_OPTIONS.map((t) => <MenuItem key={t} value={t} sx={{ textTransform: 'capitalize' }}>{t}</MenuItem>)}
+              <MenuItem value=""><em>All</em></MenuItem>
+              {VISIT_AREA_OPTIONS.map((a) => <MenuItem key={a} value={a}>{a}</MenuItem>)}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -133,8 +147,8 @@ export default function PassTable({ data, loading, filters, onFilterChange, onCh
                 <TableCell>Company</TableCell>
                 <TableCell>NIC</TableCell>
                 <TableCell>Contact</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Zone</TableCell>
+                <TableCell>Visitor Category</TableCell>
+                <TableCell>Visit Area</TableCell>
                 <TableCell>Issued</TableCell>
                 <TableCell>Received</TableCell>
                 <TableCell>Status</TableCell>
@@ -152,7 +166,6 @@ export default function PassTable({ data, loading, filters, onFilterChange, onCh
                 </TableRow>
               ) : (
                 data.items.map((row) => {
-                  const typeTheme = getTypeColor(row.pass_type);
                   return (
                     <TableRow key={row.id}>
                       <TableCell>{row.sr_no}</TableCell>
@@ -168,19 +181,22 @@ export default function PassTable({ data, loading, filters, onFilterChange, onCh
                       <TableCell>{row.company_name}</TableCell>
                       <TableCell>{row.nic_number}</TableCell>
                       <TableCell>{row.contact_number}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={`${row.pass_type} - ${row.zone}`}
-                          size="small"
-                          sx={{ 
-                            color: typeTheme.color, 
-                            backgroundColor: typeTheme.bg,
-                            fontWeight: 600,
-                            textTransform: 'capitalize'
-                          }} 
-                        />
+                      <TableCell sx={{ maxWidth: 220 }}>
+                        {row.visitor_category ? (
+                          <Typography variant="body2" title={row.visitor_category} noWrap>
+                            {row.visitor_category}
+                          </Typography>
+                        ) : "-"}
                       </TableCell>
-                      <TableCell>{row.zone}</TableCell>
+                      <TableCell sx={{ maxWidth: 260 }}>
+                        {row.visit_area?.length ? (
+                          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                            {row.visit_area.map((area) => (
+                              <Chip key={area} label={area} size="small" variant="outlined" color="primary" />
+                            ))}
+                          </Stack>
+                        ) : "-"}
+                      </TableCell>
                       <TableCell>{new Date(row.issued_time).toLocaleString()}</TableCell>
                       <TableCell>{row.checkout_time ? new Date(row.checkout_time).toLocaleString() : "-"}</TableCell>
                       <TableCell>

@@ -549,7 +549,7 @@ const VisitorRequestPage = () => {
           }}>
             <GlobalOutlined style={{ fontSize: 24, color: '#fff' }} />
           </div>
-          <Title level={2} style={{ color: '#1a3c6e', marginBottom: 4 }}>Internal Visitor Request</Title>
+          <Title level={2} style={{ color: '#1a3c6e', marginBottom: 4 }}>Visitor Request-Internal</Title>
           <Text type="secondary">Submit your visitor pass request</Text>
         </div>
 

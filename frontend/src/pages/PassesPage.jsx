@@ -42,7 +42,7 @@ export default function PassesPage() {
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [data, setData] = useState(initialData);
-  const [filters, setFilters] = useState({ page: 1, page_size: 20, search: "", pass_type: "", access_level: "", zone: "", target_date: "", sort: "desc" });
+  const [filters, setFilters] = useState({ page: 1, page_size: 20, search: "", visitor_category: "", visit_area: "", visitor_type: "", access_level: "", target_date: "", sort: "desc" });
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
   const fetchData = async (customFilters = filters) => {
@@ -125,7 +125,8 @@ export default function PassesPage() {
         <p><strong>Company:</strong> ${row.company_name}</p>
         <p><strong>NIC:</strong> ${row.nic_number}</p>
         <p><strong>Contact:</strong> ${row.contact_number}</p>
-        <p><strong>Zone:</strong> ${row.zone}</p>
+        <p><strong>Visitor Category:</strong> ${row.visitor_category || "-"}</p>
+        <p><strong>Visit Area:</strong> ${(row.visit_area || []).join(", ") || "-"}</p>
         <p><strong>Issued:</strong> ${new Date(row.issued_time).toLocaleString()}</p>
       </body>
       </html>

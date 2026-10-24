@@ -1,18 +1,18 @@
 /**
  * AdminUsersPage.jsx
  * Admin-only page for creating and managing user accounts,
- * including Department Coordinator assignment with department & HOD.
+ * separating Internal Staff Accounts and External Public Requester Accounts.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Table, Button, Modal, Form, Input, Select, Tag, message,
-  Space, Tooltip, Typography, Divider, Alert, Spin, Badge, Popconfirm
+  Space, Tooltip, Typography, Divider, Alert, Badge, Popconfirm, Tabs, Row, Col, Statistic
 } from 'antd';
 import {
-  PlusOutlined, EditOutlined, UserOutlined, ApartmentOutlined,
+  PlusOutlined, UserOutlined, ApartmentOutlined,
   LockOutlined, CheckCircleOutlined, StopOutlined, ReloadOutlined,
-  TeamOutlined
+  TeamOutlined, GlobalOutlined, SearchOutlined, IdcardOutlined, SafetyCertificateOutlined
 } from '@ant-design/icons';
 import api from '../api/api';
 import { useAuthStore } from '../features/authStore';
@@ -27,6 +27,7 @@ const ROLES = [
   { value: 'security_gate_officer',  label: 'Security Gate Officer' },
   { value: 'department_manager',     label: 'Department Manager' },
   { value: 'department_coordinator', label: 'Department Coordinator' },
+  { value: 'public_requester',       label: 'External Requester' },
 ];
 
 const ROLE_COLOR = {
@@ -36,17 +37,24 @@ const ROLE_COLOR = {
   security_gate_officer:  'green',
   department_manager:     'purple',
   department_coordinator: 'orange',
+  public_requester:       'cyan',
 };
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 const AdminUsersPage = () => {
   const { user: currentUser } = useAuthStore();
+  const [activeTab, setActiveTab] = useState('internal'); // 'internal' | 'external'
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [hodUsers, setHodUsers] = useState([]);  // potential HODs (department_manager or admin)
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [searchText, setSearchText] = useState('');
+
+  // Counts for tabs summary
+  const [internalCount, setInternalCount] = useState(0);
+  const [externalCount, setExternalCount] = useState(0);
 
   // Create user modal
   const [createOpen, setCreateOpen] = useState(false);
@@ -60,17 +68,45 @@ const AdminUsersPage = () => {
   const [assignLoading, setAssignLoading] = useState(false);
   const [assignForm] = Form.useForm();
 
-  const fetchUsers = useCallback(async (pg = 1) => {
+  const fetchUsers = useCallback(async (pg = 1, currentTab = activeTab, search = searchText) => {
     setLoading(true);
     try {
-      const res = await api.get('/api/users', { params: { page: pg, page_size: 20 } });
+      const params = {
+        page: pg,
+        page_size: 20,
+        account_type: currentTab, // 'internal' or 'external'
+      };
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+      const res = await api.get('/api/users', { params });
       setUsers(res.data.items || []);
       setTotal(res.data.total || 0);
       setPage(pg);
+
+      if (currentTab === 'internal') {
+        setInternalCount(res.data.total || 0);
+      } else {
+        setExternalCount(res.data.total || 0);
+      }
     } catch (err) {
       message.error('Failed to load users');
     } finally {
       setLoading(false);
+    }
+  }, [activeTab, searchText]);
+
+  // Fetch counts for both tabs
+  const fetchCounts = useCallback(async () => {
+    try {
+      const [intRes, extRes] = await Promise.all([
+        api.get('/api/users', { params: { page: 1, page_size: 1, account_type: 'internal' } }),
+        api.get('/api/users', { params: { page: 1, page_size: 1, account_type: 'external' } }),
+      ]);
+      setInternalCount(intRes.data.total || 0);
+      setExternalCount(extRes.data.total || 0);
+    } catch {
+      // non-critical
     }
   }, []);
 
@@ -85,7 +121,7 @@ const AdminUsersPage = () => {
 
   const fetchHodCandidates = useCallback(async () => {
     try {
-      const res = await api.get('/api/users', { params: { page: 1, page_size: 100 } });
+      const res = await api.get('/api/users', { params: { page: 1, page_size: 100, account_type: 'internal' } });
       const candidates = (res.data.items || []).filter(u =>
         ['department_manager', 'admin'].includes(u.role) && u.is_active
       );
@@ -96,10 +132,23 @@ const AdminUsersPage = () => {
   }, []);
 
   useEffect(() => {
-    fetchUsers(1);
+    fetchUsers(1, activeTab, searchText);
+    fetchCounts();
     fetchDepartments();
     fetchHodCandidates();
-  }, []);
+  }, [activeTab]);
+
+  const handleTabChange = (key) => {
+    setActiveTab(key);
+    setPage(1);
+    fetchUsers(1, key, searchText);
+  };
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setPage(1);
+    fetchUsers(1, activeTab, value);
+  };
 
   // ── Create User ──────────────────────────────────────────────────────────────
   const handleCreate = async (values) => {
@@ -117,7 +166,8 @@ const AdminUsersPage = () => {
       setCreateOpen(false);
       createForm.resetFields();
       setCreateRole(null);
-      fetchUsers(1);
+      fetchUsers(1, activeTab, searchText);
+      fetchCounts();
     } catch (err) {
       const detail = err.response?.data?.detail;
       message.error(typeof detail === 'string' ? detail : 'Failed to create user');
@@ -136,7 +186,8 @@ const AdminUsersPage = () => {
         { params: { is_active: newStatus } }
       );
       message.success(`User "${targetUser.username}" ${newStatus ? 'activated' : 'deactivated'} successfully`);
-      fetchUsers(page);
+      fetchUsers(page, activeTab, searchText);
+      fetchCounts();
     } catch (err) {
       const detail = err.response?.data?.detail;
       message.error(typeof detail === 'string' ? detail : 'Failed to update user status');
@@ -162,7 +213,7 @@ const AdminUsersPage = () => {
       });
       message.success('Coordinator assignment updated');
       setAssignOpen(false);
-      fetchUsers(page);
+      fetchUsers(page, activeTab, searchText);
     } catch (err) {
       const detail = err.response?.data?.detail;
       message.error(typeof detail === 'string' ? detail : 'Failed to update assignment');
@@ -171,10 +222,10 @@ const AdminUsersPage = () => {
     }
   };
 
-  // ── Table Columns ─────────────────────────────────────────────────────────────
-  const columns = [
+  // ── Common Columns ────────────────────────────────────────────────────────────
+  const commonColumns = [
     {
-      title: 'Username',
+      title: 'Username / Email',
       dataIndex: 'username',
       key: 'username',
       render: (v) => <Text strong>{v}</Text>,
@@ -194,6 +245,11 @@ const AdminUsersPage = () => {
         </Tag>
       ),
     },
+  ];
+
+  // Internal Columns
+  const internalColumns = [
+    ...commonColumns,
     {
       title: 'Department',
       dataIndex: 'department_id',
@@ -287,8 +343,137 @@ const AdminUsersPage = () => {
     },
   ];
 
+  // External Columns
+  const externalColumns = [
+    ...commonColumns,
+    {
+      title: 'Registered On',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (dateStr) => {
+        if (!dateStr) return <Text type="secondary">—</Text>;
+        try {
+          return new Date(dateStr).toLocaleString();
+        } catch {
+          return dateStr;
+        }
+      },
+    },
+    {
+      title: 'Status',
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (v) => v ? (
+        <Tag color="success" icon={<CheckCircleOutlined />}>Active</Tag>
+      ) : (
+        <Tag color="error" icon={<StopOutlined />}>Deactivated</Tag>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => {
+        return (
+          <Space>
+            {record.is_active ? (
+              <Popconfirm
+                title="Deactivate External Account"
+                description={`Deactivate account "${record.username}"? They will not be able to log in to track or create visitor requests.`}
+                onConfirm={() => toggleActive(record)}
+                okText="Yes, Deactivate"
+                cancelText="Cancel"
+                okButtonProps={{ danger: true }}
+              >
+                <Button
+                  size="small"
+                  danger
+                  icon={<StopOutlined />}
+                >
+                  Deactivate
+                </Button>
+              </Popconfirm>
+            ) : (
+              <Popconfirm
+                title="Activate External Account"
+                description={`Reactivate "${record.username}"?`}
+                onConfirm={() => toggleActive(record)}
+                okText="Yes, Activate"
+                cancelText="Cancel"
+              >
+                <Button
+                  size="small"
+                  type="primary"
+                  ghost
+                  icon={<CheckCircleOutlined />}
+                >
+                  Activate
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
+        );
+      },
+    },
+  ];
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      {/* Overview Stat Cards */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} sm={12}>
+          <Card 
+            hoverable
+            style={{ 
+              borderRadius: 12, 
+              borderLeft: activeTab === 'internal' ? '4px solid #0284c7' : '1px solid #e2e8f0',
+              cursor: 'pointer'
+            }}
+            onClick={() => handleTabChange('internal')}
+          >
+            <Statistic
+              title={
+                <Space>
+                  <SafetyCertificateOutlined style={{ color: '#0284c7' }} />
+                  <span style={{ fontWeight: 600 }}>Internal Staff Accounts</span>
+                </Space>
+              }
+              value={internalCount}
+              suffix="accounts"
+              valueStyle={{ color: '#0284c7', fontWeight: 800 }}
+            />
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Admins, Operations Officers, Pass Officers, Security Officers & Managers
+            </Text>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Card 
+            hoverable
+            style={{ 
+              borderRadius: 12, 
+              borderLeft: activeTab === 'external' ? '4px solid #0d9488' : '1px solid #e2e8f0',
+              cursor: 'pointer'
+            }}
+            onClick={() => handleTabChange('external')}
+          >
+            <Statistic
+              title={
+                <Space>
+                  <GlobalOutlined style={{ color: '#0d9488' }} />
+                  <span style={{ fontWeight: 600 }}>External Visitor Accounts</span>
+                </Space>
+              }
+              value={externalCount}
+              suffix="accounts"
+              valueStyle={{ color: '#0d9488', fontWeight: 800 }}
+            />
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Public & external users registered to submit and track visitor pass requests
+            </Text>
+          </Card>
+        </Col>
+      </Row>
+
       <Card
         title={
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -298,7 +483,16 @@ const AdminUsersPage = () => {
         }
         extra={
           <Space>
-            <Button icon={<ReloadOutlined />} onClick={() => fetchUsers(page)}>Refresh</Button>
+            <Input.Search
+              placeholder="Search by username or name"
+              allowClear
+              onSearch={handleSearch}
+              style={{ width: 240 }}
+              prefix={<SearchOutlined />}
+            />
+            <Button icon={<ReloadOutlined />} onClick={() => { fetchUsers(page, activeTab, searchText); fetchCounts(); }}>
+              Refresh
+            </Button>
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -310,28 +504,82 @@ const AdminUsersPage = () => {
         }
         style={{ borderRadius: 12 }}
       >
-        <Alert
-          type="info"
-          showIcon
-          message="Department Coordinators"
-          description='After creating a Coordinator account, click "Assign" to link them to a Department and a Represented HOD. One active coordinator per department is enforced.'
-          style={{ marginBottom: 16 }}
-        />
-
-        <Table
-          dataSource={users}
-          columns={columns}
-          rowKey="id"
-          loading={loading}
-          size="small"
-          pagination={{
-            current: page,
-            total,
-            pageSize: 20,
-            onChange: fetchUsers,
-            showTotal: (t) => `${t} users total`,
-          }}
-          scroll={{ x: 900 }}
+        <Tabs
+          activeKey={activeTab}
+          onChange={handleTabChange}
+          type="card"
+          items={[
+            {
+              key: 'internal',
+              label: (
+                <span>
+                  <SafetyCertificateOutlined style={{ marginRight: 6 }} />
+                  Internal Staff ({internalCount})
+                </span>
+              ),
+              children: (
+                <>
+                  <Alert
+                    type="info"
+                    showIcon
+                    message="Department Coordinators & Staff Accounts"
+                    description='Internal users have designated operational roles. For Department Coordinators, click "Assign" to link them to their respective Department and Represented HOD.'
+                    style={{ marginBottom: 16 }}
+                  />
+                  <Table
+                    dataSource={users}
+                    columns={internalColumns}
+                    rowKey="id"
+                    loading={loading}
+                    size="small"
+                    pagination={{
+                      current: page,
+                      total,
+                      pageSize: 20,
+                      onChange: (p) => fetchUsers(p, 'internal', searchText),
+                      showTotal: (t) => `${t} staff accounts total`,
+                    }}
+                    scroll={{ x: 900 }}
+                  />
+                </>
+              ),
+            },
+            {
+              key: 'external',
+              label: (
+                <span>
+                  <GlobalOutlined style={{ marginRight: 6 }} />
+                  External Accounts ({externalCount})
+                </span>
+              ),
+              children: (
+                <>
+                  <Alert
+                    type="success"
+                    showIcon
+                    message="External Visitor Accounts"
+                    description="These accounts are created by external visitors/organizations when registering through the portal to submit and manage visitor pass requests."
+                    style={{ marginBottom: 16 }}
+                  />
+                  <Table
+                    dataSource={users}
+                    columns={externalColumns}
+                    rowKey="id"
+                    loading={loading}
+                    size="small"
+                    pagination={{
+                      current: page,
+                      total,
+                      pageSize: 20,
+                      onChange: (p) => fetchUsers(p, 'external', searchText),
+                      showTotal: (t) => `${t} external accounts total`,
+                    }}
+                    scroll={{ x: 800 }}
+                  />
+                </>
+              ),
+            },
+          ]}
         />
       </Card>
 
@@ -353,8 +601,8 @@ const AdminUsersPage = () => {
           <Form.Item name="full_name" label="Full Name" rules={[{ required: true }]}>
             <Input prefix={<UserOutlined />} placeholder="e.g. Nimal Perera" />
           </Form.Item>
-          <Form.Item name="username" label="Username" rules={[{ required: true }, { min: 3 }]}>
-            <Input prefix={<UserOutlined />} placeholder="e.g. it.coordinator" />
+          <Form.Item name="username" label="Username / Email" rules={[{ required: true }, { min: 3 }]}>
+            <Input prefix={<UserOutlined />} placeholder="e.g. it.coordinator or visitor@example.com" />
           </Form.Item>
           <Form.Item name="password" label="Password" rules={[{ required: true }, { min: 8 }]}>
             <Input.Password prefix={<LockOutlined />} placeholder="Minimum 8 characters" />

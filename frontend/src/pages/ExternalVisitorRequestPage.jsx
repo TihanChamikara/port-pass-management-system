@@ -610,7 +610,7 @@ const ExternalVisitorRequestPage = () => {
           }}>
             <GlobalOutlined style={{ fontSize: 24, color: '#fff' }} />
           </div>
-          <Title level={2} style={{ color: '#1a3c6e', marginBottom: 4 }}>External Visitor Request</Title>
+          <Title level={2} style={{ color: '#1a3c6e', marginBottom: 4 }}>Visitor Request-External</Title>
           <Text type="secondary">Submit your application to request access to the Port Facility</Text>
         </div>
 

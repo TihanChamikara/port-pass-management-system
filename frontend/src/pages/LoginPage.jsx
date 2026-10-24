@@ -65,7 +65,7 @@ const LoginPage = () => {
       <div className="login-card-spatial">
         <PortLogo />
         
-        <h1 className="login-title">Port Pass Pro</h1>
+        <h1 className="login-title">Visitor Management Portal</h1>
         <p className="login-subtitle">
           {selectedDept ? `Sign in to continue • ${selectedDept}` : 'Sign in to continue'}
         </p>
@@ -168,7 +168,7 @@ const LoginPage = () => {
           padding: 48px 44px;
           text-align: center;
           
-          background: var(--glass-bg);
+          background: rgba(238, 240, 245, 0.68);
           backdrop-filter: blur(var(--glass-blur)) saturate(180%);
           -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
           border: 1px solid var(--glass-border);

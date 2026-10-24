@@ -449,7 +449,7 @@ function AdminDashboard({ data, onRefresh, loading, actionFilters }) {
             </Typography>
           </Box>
           <Typography sx={{ color: '#f1f5f9', fontWeight: 900, fontSize: { xs: '1.8rem', md: '2.4rem' }, lineHeight: 1, letterSpacing: '-0.5px', mb: 0.5 }}>
-            PORT PASS PRO
+            Visitor Management Portal
           </Typography>
           <Typography sx={{ color: '#64748b', fontSize: '0.9rem', mb: 3 }}>
             Enterprise Command Center — Administrator View
@@ -759,19 +759,24 @@ function PassOfficerDashboard({ data, onRefresh, loading, actionFilters }) {
   const gridColor = isDark ? "rgba(148,163,184,0.25)" : "#E5E7EB";
   const tooltipBg = isDark ? "#0F172A" : "#FFFFFF";
 
-  const passTypeChartData = PASS_TYPES.map((t) => ({
-    name: t.label, value: data.pass_type_distribution?.[t.value] ?? 0, color: t.color,
-  })).filter((d) => d.value > 0);
+  const CATEGORY_COLORS = ["#0ea5e9", "#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6", "#ec4899", "#84cc16", "#64748b"];
+  // Long category names (e.g. "Government Official (Customs/Navy/...)") are shortened for the chart legend
+  const shortLabel = (label) => label.replace(/\s*\(.*\)\s*$/, "");
 
-  const zoneChartData = Object.entries(data.zone_access_distribution || {}).map(([k, v]) => ({
-    zone: k, passes: v,
-  }));
+  const visitorCategoryChartData = Object.entries(data.visitor_category_distribution || {})
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v], i) => ({ name: shortLabel(k), value: v, color: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }))
+    .filter((d) => d.value > 0);
+
+  const visitAreaChartData = Object.entries(data.visit_area_distribution || {})
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => ({ area: k, passes: v }));
 
   return (
     <Stack spacing={4}>
       <DashboardHeader
         title="Pass Officer Dashboard"
-        subtitle="Operational hub — pass issuance, QR generation and active passes"
+        subtitle="Operational hub — verify approved requests, issue passes and track visitors"
         onRefresh={onRefresh}
         loading={loading}
         actionFilters={actionFilters}
@@ -781,10 +786,10 @@ function PassOfficerDashboard({ data, onRefresh, loading, actionFilters }) {
       <Grid container spacing={2.5}>
         {[
           { title: "Awaiting Pass Issuance", value: data.approved_awaiting_pass, color: "#f59e0b", icon: "⏳", subtitle: "Approved, pass not yet generated" },
-          { title: "Passes Issued Today", value: data.passes_issued_today, color: "#0ea5e9", icon: "🎫", subtitle: "Generated today" },
+          { title: "Passes Issued", value: data.passes_issued_today, color: "#0ea5e9", icon: "🎫", subtitle: "In selected period" },
           { title: "Active Passes", value: data.active_passes, color: "#10b981", icon: "✅", subtitle: "Currently valid" },
+          { title: "Visitors On Site", value: data.visitors_on_site ?? 0, color: "#8b5cf6", icon: "🚶", subtitle: "Checked in at gate" },
           { title: "Overdue Passes", value: data.expired_passes, color: "#ef4444", icon: "⌛", subtitle: "Past validity period" },
-          { title: "Pending Renewals", value: data.pending_renewals, color: "#8b5cf6", icon: "🔄", subtitle: "Renewal requested" },
           { title: "All-Time Passes", value: data.total_passes_all_time, color: "#64748b", icon: "📁", subtitle: "Total passes ever issued" },
         ].map((s) => (
           <Grid item xs={12} sm={6} md={4} lg={2} key={s.title}>
@@ -795,28 +800,36 @@ function PassOfficerDashboard({ data, onRefresh, loading, actionFilters }) {
 
       {/* Charts */}
       <Grid container spacing={3}>
-        {passTypeChartData.length > 0 && (
-          <Grid item xs={12} md={6}>
-            <ChartCard title="Pass Type Distribution">
-              <Pie3DChart data={passTypeChartData} isDarkMode={isDark} />
-            </ChartCard>
-          </Grid>
-        )}
-        {zoneChartData.length > 0 && (
-          <Grid item xs={12} md={6}>
-            <ChartCard title="Passes by Zone">
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={zoneChartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                  <XAxis dataKey="zone" tick={{ fill: axisColor, fontSize: 12 }} tickLine={false} />
-                  <YAxis tick={{ fill: axisColor, fontSize: 12 }} tickLine={false} allowDecimals={false} />
+        <Grid item xs={12} md={6}>
+          <ChartCard title="Passes by Visitor Category">
+            {visitorCategoryChartData.length > 0 ? (
+              <Pie3DChart data={visitorCategoryChartData} isDarkMode={isDark} />
+            ) : (
+              <Typography variant="body2" color="text.secondary" sx={{ py: 8, textAlign: "center" }}>
+                No issued passes with a visitor category yet
+              </Typography>
+            )}
+          </ChartCard>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <ChartCard title="Passes by Visit Area">
+            {visitAreaChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={Math.max(280, visitAreaChartData.length * 32)}>
+                <BarChart data={visitAreaChartData} layout="vertical" margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
+                  <XAxis type="number" tick={{ fill: axisColor, fontSize: 12 }} tickLine={false} allowDecimals={false} />
+                  <YAxis type="category" dataKey="area" width={170} tick={{ fill: axisColor, fontSize: 11 }} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: 8, border: "none", backgroundColor: tooltipBg, color: axisColor }} cursor={{ fill: "rgba(0,0,0,0.05)" }} />
-                  <Bar dataKey="passes" fill="#0ea5e9" name="Passes" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="passes" fill="#0ea5e9" name="Passes" radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </ChartCard>
-          </Grid>
-        )}
+            ) : (
+              <Typography variant="body2" color="text.secondary" sx={{ py: 8, textAlign: "center" }}>
+                No issued passes with a visit area yet
+              </Typography>
+            )}
+          </ChartCard>
+        </Grid>
       </Grid>
 
       {/* Recent issued */}
@@ -1293,6 +1306,7 @@ function SpatialKPI({ title, value, color, icon, subtitle, accentGlyph }) {
 }
 
 function SpatialHero({ deptLabel, pendingCount, isDark, onRefresh, loading, actionFilters }) {
+  const navigate = useNavigate();
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const hasUrgent = pendingCount > 0;
@@ -1331,7 +1345,7 @@ function SpatialHero({ deptLabel, pendingCount, isDark, onRefresh, loading, acti
             {greeting}, Manager
           </Typography>
           <Typography sx={{ color: "rgba(148,163,184,0.85)", fontSize: "0.9rem", mb: 2 }}>
-            Here's what's happening with your department's visitor requests.
+            Here&apos;s what&apos;s happening with your department&apos;s visitor requests.
           </Typography>
           {/* Dept badge */}
           <Box sx={{

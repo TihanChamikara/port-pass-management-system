@@ -476,7 +476,6 @@ export default function PassIssuingPage() {
                 <TableCell sx={{ fontWeight: 700, fontSize: "0.85rem", fontFamily: "'Poppins', 'Inter', sans-serif", width: 130 }}>Contact Phone</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: "0.85rem", fontFamily: "'Poppins', 'Inter', sans-serif", width: 160 }}>Organization</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: "0.85rem", fontFamily: "'Poppins', 'Inter', sans-serif", width: 200 }}>Host Details</TableCell>
-                <TableCell sx={{ fontWeight: 700, fontSize: "0.85rem", fontFamily: "'Poppins', 'Inter', sans-serif", width: 120 }}>Zones</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: "0.85rem", fontFamily: "'Poppins', 'Inter', sans-serif", width: 140 }}>Approved At</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 700, fontSize: "0.85rem", fontFamily: "'Poppins', 'Inter', sans-serif", width: 160 }}>Action</TableCell>
               </TableRow>
@@ -484,7 +483,7 @@ export default function PassIssuingPage() {
             <TableBody>
               {approvedRequests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 6, color: "text.secondary" }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 6, color: "text.secondary" }}>
                     <WarningIcon sx={{ fontSize: 36, mb: 1, color: "#94a3b8", display: "block", margin: "0 auto" }} />
                     No approved visitor requests are currently waiting.
                   </TableCell>
@@ -555,32 +554,6 @@ export default function PassIssuingPage() {
                         <Typography sx={{ fontSize: "0.8rem", fontWeight: 600, color: "text.secondary" }}>
                           Host: {request.host_employee_name || 'Not specified'}
                         </Typography>
-                      </Box>
-                    </TableCell>
-
-                    {/* Zones */}
-                    <TableCell>
-                      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                        {(request.requested_zones || []).map((zone, idx) => {
-                          const normalizedZone = normalizeZone(zone);
-                          const color = ZONE_COLORS[normalizedZone] || "#3B82F6";
-                          return (
-                            <Chip
-                              key={idx}
-                              label={normalizedZone}
-                              size="small"
-                              sx={{
-                                backgroundColor: `${color}15`,
-                                color: color,
-                                fontWeight: 700,
-                                fontSize: "0.7rem",
-                                height: 20,
-                                border: `1px solid ${color}30`,
-                                fontFamily: "'Poppins', 'Inter', sans-serif"
-                              }}
-                            />
-                          );
-                        })}
                       </Box>
                     </TableCell>
 

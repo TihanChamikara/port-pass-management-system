@@ -39,6 +39,7 @@ class UserResponse(BaseModel):
     is_active: bool
     department_id: int | None = None
     represented_hod_id: int | None = None
+    created_at: str | None = None
 
 
 class UserListResponse(BaseModel):
@@ -50,11 +51,25 @@ class UserListResponse(BaseModel):
 def list_users(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    account_type: Optional[str] = Query(default=None, description="Filter by 'internal' or 'external'"),
+    search: Optional[str] = Query(default=None, description="Search username or full_name"),
     db: Session = Depends(get_db),
     _: User = Depends(require_admin()),
 ) -> UserListResponse:
-    """List all users (Admin only)."""
+    """List all users (Admin only) with optional account_type filtering."""
     query = db.query(User)
+
+    if account_type == "external":
+        query = query.filter(User.role == UserRole.public_requester)
+    elif account_type == "internal":
+        query = query.filter(User.role != UserRole.public_requester)
+
+    if search:
+        term = f"%{search.strip()}%"
+        query = query.filter(
+            (User.username.ilike(term)) | (User.full_name.ilike(term))
+        )
+
     total = query.count()
 
     users = (
@@ -74,6 +89,7 @@ def list_users(
                 is_active=u.is_active,
                 department_id=u.department_id,
                 represented_hod_id=u.represented_hod_id,
+                created_at=u.created_at.isoformat() if u.created_at else None,
             )
             for u in users
         ],

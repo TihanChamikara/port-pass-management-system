@@ -4,6 +4,7 @@ Pass Routes: Enhanced with new services and RBAC
 
 import csv
 import io
+import json
 import logging
 import traceback
 from datetime import date, datetime, time, timezone
@@ -22,9 +23,28 @@ router = APIRouter(prefix="/passes", tags=["Passes"])
 logger = logging.getLogger(__name__)
 
 
-def _serialize_pass(record: PassRecord, visitor_type: str | None = None) -> PassResponse:
+def _parse_visit_area(raw: str | None) -> list[str]:
+    if not raw:
+        return []
+    try:
+        value = json.loads(raw)
+    except (TypeError, ValueError):
+        return [raw]
+    if isinstance(value, list):
+        return [str(v) for v in value]
+    return [str(value)]
+
+
+def _serialize_pass(
+    record: PassRecord,
+    visitor_type: str | None = None,
+    visitor_category: str | None = None,
+    requested_zones: str | None = None,
+) -> PassResponse:
     obj = PassResponse.model_validate(record, from_attributes=True)
     obj.visitor_type = visitor_type
+    obj.visitor_category = visitor_category
+    obj.visit_area = _parse_visit_area(requested_zones)
     return obj
 
 
@@ -63,6 +83,8 @@ def list_passes(
     target_date: date | None = Query(default=None),
     status: PassStatus | None = Query(default=None),
     visitor_type: str | None = Query(default=None, description="Filter by VIP or Normal"),
+    visitor_category: str | None = Query(default=None, description="Filter by visitor category"),
+    visit_area: str | None = Query(default=None, description="Filter by visit area"),
     sort: str = Query(default="desc"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -92,7 +114,12 @@ def list_passes(
 
         from app.models.visitor_request import VisitorRequest
 
-        query = db.query(PassRecord, VisitorRequest.visitor_type).outerjoin(VisitorRequest, VisitorRequest.pass_record_id == PassRecord.id)
+        query = db.query(
+            PassRecord,
+            VisitorRequest.visitor_type,
+            VisitorRequest.visitor_category,
+            VisitorRequest.requested_zones,
+        ).outerjoin(VisitorRequest, VisitorRequest.pass_record_id == PassRecord.id)
         
         if current_user.role == "pass_officer":
             # Pass officers manage non-VIP passes, Ops officers can see all
@@ -100,6 +127,9 @@ def list_passes(
             
         if visitor_type:
             query = query.filter(VisitorRequest.visitor_type == visitor_type)
+
+        if visitor_category:
+            query = query.filter(VisitorRequest.visitor_category == visitor_category)
 
         if search:
             term = f"%{search.strip()}%"
@@ -132,6 +162,9 @@ def list_passes(
 
         rows = query.all()
 
+        if visit_area:
+            rows = [row for row in rows if visit_area in _parse_visit_area(row[3])]
+
         if access_level == "single":
             rows = [row for row in rows if len(row[0].allowed_zones or []) == 1]
         elif access_level == "all":
@@ -139,7 +172,10 @@ def list_passes(
 
         total = len(rows)
         start_index = (page - 1) * page_size
-        items = [_serialize_pass(row[0], visitor_type=row[1]) for row in rows[start_index : start_index + page_size]]
+        items = [
+            _serialize_pass(row[0], visitor_type=row[1], visitor_category=row[2], requested_zones=row[3])
+            for row in rows[start_index : start_index + page_size]
+        ]
 
         return PassListResponse(items=items, total=total, page=page, page_size=page_size)
     except HTTPException:
